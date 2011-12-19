@@ -11,15 +11,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.webapp.WebAppContext;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import com.mongodb.Mongo;
+import com.mulesoft.mongo.util.AppContext;
 import com.mulesoft.mongo.util.ResourceClientFactory;
 import com.sun.jersey.api.client.Client;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "/META-INF/wiring-local.xml" })
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class MongoRestServiceTest {
     private Server server;
     private static final String testUsername = "admin";
@@ -69,7 +74,10 @@ public class MongoRestServiceTest {
         } catch (Throwable t) {
             t.printStackTrace();
         }
-        // TODO: purge mongo
+        Mongo mongo = (Mongo) AppContext.getApplicationContext().getBean("mongo");
+        for (String dbName : mongo.getDatabaseNames()) {
+            mongo.dropDatabase(dbName);
+        }
     }
 
     @Test
