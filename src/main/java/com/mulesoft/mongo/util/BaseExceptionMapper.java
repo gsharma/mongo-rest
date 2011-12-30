@@ -16,7 +16,7 @@ public class BaseExceptionMapper implements javax.ws.rs.ext.ExceptionMapper<Exce
     @Override
     public Response toResponse(Exception exception) {
         logger.error("Service exception handled by BaseExceptionMapper", exception);
-        return Response.status(HttpStatusMapper.ClientError.BAD_REQUEST.code())
+        return Response.status(HttpStatusMapper.ClientError.BAD_REQUEST.code()).type(MediaType.APPLICATION_JSON)
                 .entity(HttpStatusMapper.ClientError.BAD_REQUEST.message()).build();
     }
 }

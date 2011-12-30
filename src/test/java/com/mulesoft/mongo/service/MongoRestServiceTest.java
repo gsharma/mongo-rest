@@ -3,6 +3,12 @@ package com.mulesoft.mongo.service;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
 
 import org.junit.After;
 import org.junit.Before;
@@ -21,6 +27,8 @@ import com.mongodb.Mongo;
 import com.mulesoft.mongo.util.AppContext;
 import com.mulesoft.mongo.util.ResourceClientFactory;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.GenericType;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "/META-INF/wiring-local.xml" })
@@ -28,7 +36,8 @@ import com.sun.jersey.api.client.Client;
 public class MongoRestServiceTest {
     private Server server;
     private static final String testUsername = "admin";
-    private static final String testPassword = "admin";
+    private static final String testPassword = "r3$tfuLM0ng0";
+    private String baseUri = "http://localhost:9002/api/mongo/databases";
     protected Client clientHandle;
 
     @BeforeClass
@@ -76,17 +85,38 @@ public class MongoRestServiceTest {
         }
         Mongo mongo = (Mongo) AppContext.getApplicationContext().getBean("mongo");
         for (String dbName : mongo.getDatabaseNames()) {
+            System.out.println("Dropping " + dbName);
             mongo.dropDatabase(dbName);
         }
     }
 
     @Test
     public void testCreateDatabase() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        db.setName("mongo-rest-test");
+        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
     }
 
+    @Test
     public void testFindDatabase() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        db.setWriteConcern(com.mulesoft.mongo.to.request.WriteConcern.SAFE);
+        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(response.getLocation()).type(MediaType.APPLICATION_JSON_TYPE)
+                .get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        com.mulesoft.mongo.to.response.Database database = response
+                .getEntity(com.mulesoft.mongo.to.response.Database.class);
+        assertNotNull(database);
+        assertEquals(dbName, database.getName());
+        assertEquals(com.mulesoft.mongo.to.response.WriteConcern.SAFE, database.getWriteConcern());
     }
 
     @Test
@@ -96,22 +126,104 @@ public class MongoRestServiceTest {
 
     @Test
     public void testDeleteDatabase() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(response.getLocation()).type(MediaType.APPLICATION_JSON_TYPE)
+                .delete(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
     }
 
     @Test
     public void testFindDatabases() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName1 = "mongo-rest-test1";
+        db.setName(dbName1);
+        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        db = new com.mulesoft.mongo.to.request.Database();
+        String dbName2 = "mongo-rest-test2";
+        db.setName(dbName2);
+        response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        List<com.mulesoft.mongo.to.response.Database> databases = clientHandle.resource(baseUri)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get(new GenericType<List<com.mulesoft.mongo.to.response.Database>>() {
+                });
+        assertEquals(2, databases.size());
+
+        List<String> names = new ArrayList<String>(2);
+        names.add(dbName1);
+        names.add(dbName2);
+        for (com.mulesoft.mongo.to.response.Database database : databases) {
+            assertTrue(names.contains(database.getName()));
+            assertEquals(com.mulesoft.mongo.to.response.WriteConcern.SAFE, database.getWriteConcern());
+        }
     }
 
     @Test
     public void testDeleteDatabases() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName1 = "mongo-rest-test1";
+        db.setName(dbName1);
+        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        db = new com.mulesoft.mongo.to.request.Database();
+        String dbName2 = "mongo-rest-test2";
+        db.setName(dbName2);
+        response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        List<com.mulesoft.mongo.to.response.Database> databases = clientHandle.resource(baseUri)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get(new GenericType<List<com.mulesoft.mongo.to.response.Database>>() {
+                });
+        assertEquals(2, databases.size());
+
+        response = clientHandle.resource(baseUri).delete(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        databases = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .get(new GenericType<List<com.mulesoft.mongo.to.response.Database>>() {
+                });
+        assertEquals(0, databases.size());
     }
 
     @Test
     public void testCreateCollection() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        db.setName("mongo-rest-test");
+        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        collection.setName("mongo-collection-1");
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        collection = new com.mulesoft.mongo.to.request.Collection();
+        collection.setName("mongo-collection-2");
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        List<com.mulesoft.mongo.to.response.Database> databases = clientHandle.resource(dbUrl)
+                .queryParam("collDetails", "true").type(MediaType.APPLICATION_JSON_TYPE)
+                .get(new GenericType<List<com.mulesoft.mongo.to.response.Database>>() {
+                });
+        assertEquals(1, databases.size());
     }
 
     @Test

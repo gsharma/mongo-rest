@@ -19,7 +19,7 @@ import com.mulesoft.mongo.util.Utils;
 
 public class Realm extends AuthorizingRealm {
     private static final String USER = "admin";
-    private static final String PASSWD = "admin";
+    private static final String PASSWD = "r3$tfuLM0ng0";
 
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {

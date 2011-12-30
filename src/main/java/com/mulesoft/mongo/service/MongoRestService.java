@@ -1,24 +1,32 @@
 package com.mulesoft.mongo.service;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.mulesoft.mongo.to.request.Collection;
+import com.mulesoft.mongo.to.request.Database;
+import com.mulesoft.mongo.to.request.Document;
+import com.mulesoft.mongo.to.request.Index;
+
 public interface MongoRestService {
 
     // POST /databases
-    public Response createDatabase(Object database, @Context HttpHeaders headers, @Context UriInfo uriInfo,
+    public Response createDatabase(Database database, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
     // GET /databases/<db>
-    public Response findDatabase(@PathParam("dbName") String dbName, @Context HttpHeaders headers,
+    public Response findDatabase(@PathParam("dbName") String dbName,
+            @QueryParam("collDetails") @DefaultValue("false") boolean collDetails, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
     // PUT /databases/<db>
-    public Response updateDatabase(Object database, @PathParam("dbName") String dbName, @Context HttpHeaders headers,
+    public Response updateDatabase(Database database, @PathParam("dbName") String dbName, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
     // DELETE /databases/<db>
@@ -26,15 +34,15 @@ public interface MongoRestService {
             @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
     // GET /databases
-    public Response findDatabases(@Context HttpHeaders headers, @Context UriInfo uriInfo,
-            @Context SecurityContext securityContext);
+    public Response findDatabases(@QueryParam("collDetails") @DefaultValue("false") boolean collDetails,
+            @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
     // DELETE /databases
     public Response deleteDatabases(@Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
     // POST /databases/<db>/collections
-    public Response createCollection(@PathParam("dbName") String dbName, Object collection,
+    public Response createCollection(@PathParam("dbName") String dbName, Collection collection,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
     // GET /databases/<db>/collections/<coll>
@@ -43,7 +51,7 @@ public interface MongoRestService {
 
     // PUT /databases/<db>/collections/<coll>
     public Response updateCollection(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
-            Object collection, @Context HttpHeaders headers, @Context UriInfo uriInfo,
+            Collection collection, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
     // DELETE /databases/<db>/collections/<coll>
@@ -60,7 +68,7 @@ public interface MongoRestService {
 
     // POST /databases/<db>/collections/<coll>/indexes
     public Response createIndex(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
-            Object index, @Context HttpHeaders headers, @Context UriInfo uriInfo,
+            Index index, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
     // GET /databases/<db>/collections/<coll>/indexes/<index>
@@ -83,7 +91,7 @@ public interface MongoRestService {
 
     // POST /databases/<db>/collections/<coll>/documents
     public Response createDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
-            Object document, @Context HttpHeaders headers, @Context UriInfo uriInfo,
+            Document document, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
     // GET /databases/<db>/collections/<coll>/documents/<docName>
@@ -93,7 +101,7 @@ public interface MongoRestService {
 
     // PUT /databases/<db>/collections/<coll>/documents/<docName>
     public Response updateDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
-            @PathParam("docName") String docName, Object document, @Context HttpHeaders headers,
+            @PathParam("docName") String docName, Document document, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
     // DELETE /databases/<db>/collections/<coll>/documents/<docName>

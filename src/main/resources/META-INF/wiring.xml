@@ -47,7 +47,7 @@
     <property name="securityManager" ref="securityManager" />
     <property name="filterChainDefinitions">
       <value>
-        /api/mongo/** = anon
+        /api** = anon
       </value>
     </property>
   </bean>
