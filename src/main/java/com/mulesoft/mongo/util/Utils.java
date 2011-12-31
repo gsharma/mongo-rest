@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -176,6 +177,16 @@ public final class Utils {
                 }
             }
             return mapString.toString();
+        }
+
+        public final static Map<String, String> stringifyMapEntries(Map<Object, Object> map) {
+            Map<String, String> stringified = new LinkedHashMap<String, String>(map.size());
+            if (map != null && !map.isEmpty()) {
+                for (Map.Entry<Object, Object> entry : map.entrySet()) {
+                    stringified.put(entry.getKey().toString(), entry.getValue().toString());
+                }
+            }
+            return stringified;
         }
     }
 }

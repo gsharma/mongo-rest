@@ -54,6 +54,6 @@
   </filter>
   <filter-mapping>
     <filter-name>Jersey Spring Web Application</filter-name>
-    <url-pattern>/api/*</url-pattern>
+    <url-pattern>/api/mongo/*</url-pattern>
   </filter-mapping>
 </web-app>

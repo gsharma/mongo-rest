@@ -36,7 +36,8 @@ public class MongoFactoryBean extends AbstractFactoryBean<Mongo> {
         if (mongoOptions == null) {
             mongoOptions = new MongoOptions();
             mongoOptions.safe = true;
-            // mongoOptions.slaveOk = true;
+            //mongoOptions.fsync = true;
+            mongoOptions.slaveOk = true;
         }
         setMultiAddress(configuration.getDataStoreReplicas().split(","));
         if (replicaSetSeeds.size() > 0) {

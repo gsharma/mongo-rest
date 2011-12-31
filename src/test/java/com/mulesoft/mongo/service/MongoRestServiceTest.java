@@ -85,7 +85,6 @@ public class MongoRestServiceTest {
         }
         Mongo mongo = (Mongo) AppContext.getApplicationContext().getBean("mongo");
         for (String dbName : mongo.getDatabaseNames()) {
-            System.out.println("Dropping " + dbName);
             mongo.dropDatabase(dbName);
         }
     }
@@ -219,26 +218,111 @@ public class MongoRestServiceTest {
                 .post(ClientResponse.class, collection);
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 
-        List<com.mulesoft.mongo.to.response.Database> databases = clientHandle.resource(dbUrl)
+        com.mulesoft.mongo.to.response.Database database = clientHandle.resource(dbUrl)
                 .queryParam("collDetails", "true").type(MediaType.APPLICATION_JSON_TYPE)
-                .get(new GenericType<List<com.mulesoft.mongo.to.response.Database>>() {
-                });
-        assertEquals(1, databases.size());
+                .get(com.mulesoft.mongo.to.response.Database.class);
+        assertEquals(2, database.getCollections().size());
+
+        for (com.mulesoft.mongo.to.response.Collection coll : database.getCollections()) {
+            assertEquals(0, coll.getIndexes().size());
+            assertEquals(0, coll.getDocuments().size());
+        }
     }
 
     @Test
     public void testFindCollection() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        com.mulesoft.mongo.to.response.Collection foundCollection = clientHandle.resource(response.getLocation())
+                .type(MediaType.APPLICATION_JSON_TYPE).get(com.mulesoft.mongo.to.response.Collection.class);
+        assertEquals(0, foundCollection.getIndexes().size());
+        assertEquals(0, foundCollection.getDocuments().size());
+        assertEquals(collName, foundCollection.getName());
+        assertEquals(dbName, foundCollection.getDbName());
     }
 
     @Test
     public void testUpdateCollection() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl = response.getLocation();
+        com.mulesoft.mongo.to.response.Collection foundCollection = clientHandle.resource(collUrl)
+                .type(MediaType.APPLICATION_JSON_TYPE).get(com.mulesoft.mongo.to.response.Collection.class);
+        assertEquals(0, foundCollection.getIndexes().size());
+        assertEquals(0, foundCollection.getDocuments().size());
+        assertEquals(collName, foundCollection.getName());
+        assertEquals(dbName, foundCollection.getDbName());
+
+        collection.setWriteConcern(com.mulesoft.mongo.to.request.WriteConcern.FSYNC_SAFE);
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE)
+                .put(ClientResponse.class, collection);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        foundCollection = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE)
+                .get(com.mulesoft.mongo.to.response.Collection.class);
+        assertEquals(0, foundCollection.getIndexes().size());
+        assertEquals(0, foundCollection.getDocuments().size());
+        assertEquals(collName, foundCollection.getName());
+        assertEquals(dbName, foundCollection.getDbName());
+        assertEquals(com.mulesoft.mongo.to.response.WriteConcern.FSYNC_SAFE, foundCollection.getWriteConcern());
     }
 
     @Test
     public void testDeleteCollection() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl = response.getLocation();
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(collUrl).delete(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        
+        try{
+        Thread.sleep(1000);
+        } catch (Exception e) {}
+
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
     }
 
     @Test

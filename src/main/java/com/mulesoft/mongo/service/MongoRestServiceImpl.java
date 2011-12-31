@@ -2,8 +2,12 @@ package com.mulesoft.mongo.service;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -29,6 +33,7 @@ import org.springframework.beans.factory.annotation.Required;
 
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mulesoft.mongo.exception.AuthenticationException;
@@ -46,6 +51,11 @@ import com.sun.jersey.spi.resource.Singleton;
 @Produces(MediaType.APPLICATION_JSON)
 public class MongoRestServiceImpl implements MongoRestService {
     private Logger logger = LoggerFactory.getLogger(MongoRestServiceImpl.class);
+    private static final String STATS_COLLECTION = "stats";
+    private static final String STATS_INDEX = "statsIndex";
+    private static final String SYS_INDEXES_COLLECTION = "system.indexes";
+    private static final Set<String> FILTERED_INDEXES = new HashSet<String>(Arrays.asList(new String[] { "v", "key",
+            "ns", "name" }));
     private Mongo mongo;
 
     @POST
@@ -63,13 +73,12 @@ public class MongoRestServiceImpl implements MongoRestService {
             }
 
             DB db = mongo.getDB(dbName);
-            db.slaveOk();
             if (database.getWriteConcern() != null) {
                 db.setWriteConcern(database.getWriteConcern().getMongoWriteConcern());
             }
 
-            DBCollection userStats = db.getCollection("stats");
-            userStats.ensureIndex("statsIndex");
+            DBCollection userStats = db.getCollection(STATS_COLLECTION);
+            userStats.ensureIndex(STATS_INDEX);
 
             URI statusSubResource = uriInfo.getBaseUriBuilder().path(MongoRestServiceImpl.class)
                     .path("/databases/" + database.getName()).build();
@@ -103,9 +112,8 @@ public class MongoRestServiceImpl implements MongoRestService {
             URI statusSubResource = uriInfo.getBaseUriBuilder().path(MongoRestServiceImpl.class)
                     .path("/databases/" + dbName).build();
             if (created) {
-                db.slaveOk();
-                DBCollection userStats = db.getCollection("stats");
-                userStats.ensureIndex("statsIndex");
+                DBCollection userStats = db.getCollection(STATS_COLLECTION);
+                userStats.ensureIndex(STATS_INDEX);
                 response = Response.created(statusSubResource).build();
             } else {
                 response = Response.ok(statusSubResource).build();
@@ -152,35 +160,7 @@ public class MongoRestServiceImpl implements MongoRestService {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
             if (mongo.getDatabaseNames().contains(dbNamespace)) {
-                DB db = mongo.getDB(dbNamespace);
-                com.mulesoft.mongo.to.response.Database database = new com.mulesoft.mongo.to.response.Database();
-                database.setName(dbName);
-                database.setWriteConcern(com.mulesoft.mongo.to.response.WriteConcern.fromMongoWriteConcern(db
-                        .getWriteConcern()));
-                if (collDetails) {
-                    List<com.mulesoft.mongo.to.response.Collection> collections = new ArrayList<com.mulesoft.mongo.to.response.Collection>();
-                    for (String collName : db.getCollectionNames()) {
-                        DBCollection dbCollection = db.getCollection(collName);
-                        com.mulesoft.mongo.to.response.Collection collection = new com.mulesoft.mongo.to.response.Collection();
-                        collection.setDbName(dbName);
-                        collection.setName(collName);
-                        collection.setWriteConcern(com.mulesoft.mongo.to.response.WriteConcern
-                                .fromMongoWriteConcern(dbCollection.getWriteConcern()));
-                        List<DBObject> indexInfos = dbCollection.getIndexInfo();
-                        List<com.mulesoft.mongo.to.response.Index> indexes = new ArrayList<com.mulesoft.mongo.to.response.Index>();
-                        for (DBObject indexInfo : indexInfos) {
-                            com.mulesoft.mongo.to.response.Index index = new com.mulesoft.mongo.to.response.Index();
-                            index.setDbName(dbName);
-                            index.setCollectionName(collName);
-                            index.setKeys(indexInfo.keySet());
-                            indexes.add(index);
-                        }
-                        collection.setIndexes(indexes);
-                        dbCollection.getCount();// TODO
-                        collections.add(collection);
-                    }
-                    database.setCollections(collections);
-                }
+                com.mulesoft.mongo.to.response.Database database = searchDatabase(dbName, dbNamespace, collDetails);
                 response = Response.ok(database).build();
             } else {
                 response = Response.status(ClientError.NOT_FOUND.code()).build();
@@ -205,14 +185,8 @@ public class MongoRestServiceImpl implements MongoRestService {
             String dbNamePrefix = "dbs:" + credentials.getUserName();
             for (String dbName : mongo.getDatabaseNames()) {
                 if (dbName.startsWith(dbNamePrefix)) {
-                    DB db = mongo.getDB(dbName);
-                    com.mulesoft.mongo.to.response.Database database = new com.mulesoft.mongo.to.response.Database();
-                    database.setName(dbName.substring(dbNamePrefix.length() + 1));
-                    database.setWriteConcern(com.mulesoft.mongo.to.response.WriteConcern.fromMongoWriteConcern(db
-                            .getWriteConcern()));
-                    if (collDetails) {
-                        // TODO
-                    }
+                    com.mulesoft.mongo.to.response.Database database = searchDatabase(
+                            dbName.substring(dbNamePrefix.length() + 1), dbName, collDetails);
                     databases.add(database);
                 }
             }
@@ -266,7 +240,7 @@ public class MongoRestServiceImpl implements MongoRestService {
                 if (collection.getWriteConcern() != null) {
                     dbCollection.setWriteConcern(collection.getWriteConcern().getMongoWriteConcern());
                 }
-                dbCollection.ensureIndex("defaultIndex");
+                dbCollection.ensureIndex("defaultIndex"); // creation hack
 
                 URI statusSubResource = uriInfo.getBaseUriBuilder().path(MongoRestServiceImpl.class)
                         .path("/databases/" + dbName + "/collections/" + collection.getName()).build();
@@ -286,7 +260,28 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response findCollection(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        return Response.ok().build();
+        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
+                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        try {
+            Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
+            String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
+            if (mongo.getDatabaseNames().contains(dbNamespace)) {
+                DB db = mongo.getDB(dbNamespace);
+                if (db.getCollectionNames().contains(collName)) {
+                    com.mulesoft.mongo.to.response.Collection collection = searchCollection(collName, dbName, db);
+                    response = Response.ok(collection).build();
+                } else {
+                    response = Response.status(ClientError.NOT_FOUND.code())
+                            .entity(collName + " does not exist in " + dbName).build();
+                }
+            } else {
+                response = Response.status(ClientError.NOT_FOUND.code()).entity(dbName + " does not exist").build();
+            }
+        } catch (Exception exception) {
+            response = lobException(exception, headers, uriInfo);
+        }
+
+        return response;
     }
 
     @PUT
@@ -295,7 +290,36 @@ public class MongoRestServiceImpl implements MongoRestService {
     public Response updateCollection(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             com.mulesoft.mongo.to.request.Collection collection, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        return Response.ok().build();
+        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
+                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        try {
+            Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
+
+            boolean created = true;
+            String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
+            if (mongo.getDatabaseNames().contains(dbNamespace)) {
+                created = false;
+            }
+            DB db = mongo.getDB(dbNamespace);
+            DBCollection dbCollection = db.getCollection(collection.getName());
+            if (collection.getWriteConcern() != null) {
+                dbCollection.setWriteConcern(collection.getWriteConcern().getMongoWriteConcern());
+            }
+
+            URI statusSubResource = uriInfo.getBaseUriBuilder().path(MongoRestServiceImpl.class)
+                    .path("/databases/" + dbName + "/collections/" + collection.getName()).build();
+
+            if (created) {
+                dbCollection.ensureIndex("defaultIndex"); // creation hack
+                response = Response.created(statusSubResource).build();
+            } else {
+                response = Response.ok(statusSubResource).build();
+            }
+        } catch (Exception exception) {
+            response = lobException(exception, headers, uriInfo);
+        }
+
+        return response;
     }
 
     @DELETE
@@ -303,7 +327,30 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response deleteCollection(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        return Response.ok().build();
+        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
+                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        try {
+            Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
+            String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
+            if (mongo.getDatabaseNames().contains(dbNamespace)) {
+                DB db = mongo.getDB(dbNamespace);
+                if (db.getCollectionNames().contains(collName)) {
+                    DBCollection collection = db.getCollection(dbNamespace);
+                    collection.dropIndexes();
+                    collection.drop();
+                    response = Response.ok().build();
+                } else {
+                    response = Response.status(ClientError.NOT_FOUND.code())
+                            .entity(collName + " does not exist in " + dbName).build();
+                }
+            } else {
+                response = Response.status(ClientError.NOT_FOUND.code()).entity(dbName + " does not exist").build();
+            }
+        } catch (Exception exception) {
+            response = lobException(exception, headers, uriInfo);
+        }
+
+        return response;
     }
 
     @GET
@@ -423,6 +470,63 @@ public class MongoRestServiceImpl implements MongoRestService {
     public Response ping(@Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext) {
         return Response.ok().build();
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private com.mulesoft.mongo.to.response.Database searchDatabase(String dbName, String dbNamespace,
+            boolean collDetails) {
+        DB db = mongo.getDB(dbNamespace);
+        com.mulesoft.mongo.to.response.Database database = new com.mulesoft.mongo.to.response.Database();
+        database.setName(dbName);
+        database.setWriteConcern(com.mulesoft.mongo.to.response.WriteConcern.fromMongoWriteConcern(db.getWriteConcern()));
+        Map statsMap = db.getStats().toMap();
+        statsMap.remove("db");
+        database.setStats(Utils.CollectionUtils.stringifyMapEntries(statsMap));
+        if (collDetails) {
+            List<com.mulesoft.mongo.to.response.Collection> collections = new ArrayList<com.mulesoft.mongo.to.response.Collection>();
+            for (String collName : db.getCollectionNames()) {
+                if (collName.equals(STATS_COLLECTION) || collName.equals(SYS_INDEXES_COLLECTION)) {
+                    continue;
+                }
+                com.mulesoft.mongo.to.response.Collection collection = searchCollection(collName, dbName, db);
+                collections.add(collection);
+            }
+            database.setCollections(collections);
+        }
+        return database;
+    }
+
+    private com.mulesoft.mongo.to.response.Collection searchCollection(String collName, String dbName, DB db) {
+        DBCollection dbCollection = db.getCollection(collName);
+        com.mulesoft.mongo.to.response.Collection collection = new com.mulesoft.mongo.to.response.Collection();
+        collection.setDbName(dbName);
+        collection.setName(collName);
+        collection.setWriteConcern(com.mulesoft.mongo.to.response.WriteConcern.fromMongoWriteConcern(dbCollection
+                .getWriteConcern()));
+        List<DBObject> indexInfos = dbCollection.getIndexInfo();
+        List<com.mulesoft.mongo.to.response.Index> indexes = new ArrayList<com.mulesoft.mongo.to.response.Index>();
+        for (DBObject indexInfo : indexInfos) {
+            Set<String> indexKeys = indexInfo.keySet();
+            indexKeys.removeAll(FILTERED_INDEXES);
+            if (!indexKeys.isEmpty()) {
+                com.mulesoft.mongo.to.response.Index index = new com.mulesoft.mongo.to.response.Index();
+                index.setDbName(dbName);
+                index.setCollectionName(collName);
+                index.setKeys(indexKeys);
+                indexes.add(index);
+            }
+        }
+        collection.setIndexes(indexes);
+        List<com.mulesoft.mongo.to.response.Document> documents = new ArrayList<com.mulesoft.mongo.to.response.Document>();
+        DBCursor cursor = dbCollection.find();
+        while (cursor.hasNext()) {
+            com.mulesoft.mongo.to.response.Document document = new com.mulesoft.mongo.to.response.Document();
+            DBObject dbDoc = cursor.next();
+            document.setJson(dbDoc.toString());
+            documents.add(document);
+        }
+        collection.setDocuments(documents);
+        return collection;
     }
 
     /**
