@@ -11,18 +11,19 @@ To use the API, you can use any HTTP client. All APIs use JSON as the data forma
 ## Status Codes and Error Handling
 When you call the REST APIs, the following HTTP status codes are returned:  
 
-| Status      | Description |  
-|:------------|:------------|  
-| 200         | The operation was successful.|  
-| 201         | The entity was created. The Location header will contain the URL to query the entity.|  
-| 400         | There was bad input data submitted as part of the request.|  
-| 401         | User credentials could not be authenticated.|  
-| 404         | The entity was not found.|  
-| 405         | The HTTP method is not supported.|  
-| 409         | When creating an entity, an entity with that name already exists.|  
-| 500         | The operation was unsuccessful. See the HTTP body for details.|  
-| 503         | You have made too many requests to the Mongo Data Service and have presently been rate limited.|  
-| 503         | Service is unavailable or performing in a degraded fashion.|  
+<table>
+  <tr><th>Status</th><th>Description</th></tr>
+  <tr><td>200</td></td>The operation was successful.</td></tr>
+  <tr><td>201</td></td>The entity was created. The Location header will contain the URL to query the entity.</td></tr>
+  <tr><td>400</td></td>There was bad input data submitted as part of the request.</td></tr>
+  <tr><td>401</td></td>User credentials could not be authenticated.</td></tr>
+  <tr><td>404</td></td>The entity was not found.</td></tr>
+  <tr><td>405</td></td>The HTTP method is not supported.</td></tr>
+  <tr><td>409</td></td>When creating an entity, an entity with that name already exists.</td></tr>
+  <tr><td>500</td></td>The operation was unsuccessful. See the HTTP body for details.</td></tr>
+  <tr><td>503</td></td>You have made too many requests to the Mongo Data Service and have presently been rate limited.</td></tr>
+  <tr><td>503</td></td>Service is unavailable or performing in a degraded fashion.</td></tr>
+</table>
 
 When errors occur (for example, a 500 status code), the HTTP response contains a JSON response with an error message.  
 
