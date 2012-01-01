@@ -20,16 +20,16 @@ public interface MongoRestService {
     public Response createDatabase(Database database, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
-    // GET /databases/<db>
+    // GET /databases/<dbName>
     public Response findDatabase(@PathParam("dbName") String dbName,
             @QueryParam("collDetails") @DefaultValue("false") boolean collDetails, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
-    // PUT /databases/<db>
+    // PUT /databases/<dbName>
     public Response updateDatabase(Database database, @PathParam("dbName") String dbName, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
-    // DELETE /databases/<db>
+    // DELETE /databases/<dbName>
     public Response deleteDatabase(@PathParam("dbName") String dbName, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
@@ -41,79 +41,79 @@ public interface MongoRestService {
     public Response deleteDatabases(@Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
-    // POST /databases/<db>/collections
+    // POST /databases/<dbName>/collections
     public Response createCollection(@PathParam("dbName") String dbName, Collection collection,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
-    // GET /databases/<db>/collections/<coll>
+    // GET /databases/<dbName>/collections/<collName>
     public Response findCollection(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
-    // PUT /databases/<db>/collections/<coll>
+    // PUT /databases/<dbName>/collections/<collName>
     public Response updateCollection(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             Collection collection, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
-    // DELETE /databases/<db>/collections/<coll>
+    // DELETE /databases/<dbName>/collections/<collName>
     public Response deleteCollection(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
-    // GET /databases/<db>/collections
+    // GET /databases/<dbName>/collections
     public Response findCollections(@PathParam("dbName") String dbName, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
-    // DELETE /databases/<db>/collections
+    // DELETE /databases/<dbName>/collections
     public Response deleteCollections(@PathParam("dbName") String dbName, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
-    // POST /databases/<db>/collections/<coll>/indexes
+    // POST /databases/<dbName>/collections/<collName>/indexes
     public Response createIndex(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             Index index, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
-    // GET /databases/<db>/collections/<coll>/indexes/<index>
+    // GET /databases/<dbName>/collections/<collName>/indexes/<index>
     public Response findIndex(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @PathParam("index") String index, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
-    // DELETE /databases/<db>/collections/<coll>/indexes/<index>
+    // DELETE /databases/<dbName>/collections/<collName>/indexes/<index>
     public Response deleteIndex(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @PathParam("index") String index, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
-    // GET /databases/<db>/collections/<coll>/indexes
+    // GET /databases/<dbName>/collections/<collName>/indexes
     public Response findIndexes(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
-    // DELETE /databases/<db>/collections/<coll>/indexes
+    // DELETE /databases/<dbName>/collections/<collName>/indexes
     public Response deleteIndexes(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
-    // POST /databases/<db>/collections/<coll>/documents
+    // POST /databases/<dbName>/collections/<collName>/documents
     public Response createDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             Document document, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
-    // GET /databases/<db>/collections/<coll>/documents/<docName>
+    // GET /databases/<dbName>/collections/<collName>/documents/<docName>
     public Response findDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @PathParam("docName") String docName, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
-    // PUT /databases/<db>/collections/<coll>/documents/<docName>
+    // PUT /databases/<dbName>/collections/<collName>/documents/<docName>
     public Response updateDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @PathParam("docName") String docName, Document document, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
-    // DELETE /databases/<db>/collections/<coll>/documents/<docName>
+    // DELETE /databases/<dbName>/collections/<collName>/documents/<docName>
     public Response deleteDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @PathParam("docName") String docName, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
-    // GET /databases/<db>/collections/<coll>/documents
+    // GET /databases/<dbName>/collections/<collName>/documents
     public Response findDocuments(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
-    // DELETE /databases/<db>/collections/<coll>/documents
+    // DELETE /databases/<dbName>/collections/<collName>/documents
     public Response deleteDocuments(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
