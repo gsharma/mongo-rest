@@ -13,23 +13,23 @@ When you call the REST APIs, the following HTTP status codes are returned:
 
 <table>
   <tr><th>Status</th><th>Description</th></tr>
-  <tr><td>200</td></td>The operation was successful.</td></tr>
-  <tr><td>201</td></td>The entity was created. The Location header will contain the URL to query the entity.</td></tr>
-  <tr><td>400</td></td>There was bad input data submitted as part of the request.</td></tr>
-  <tr><td>401</td></td>User credentials could not be authenticated.</td></tr>
-  <tr><td>404</td></td>The entity was not found.</td></tr>
-  <tr><td>405</td></td>The HTTP method is not supported.</td></tr>
-  <tr><td>409</td></td>When creating an entity, an entity with that name already exists.</td></tr>
-  <tr><td>500</td></td>The operation was unsuccessful. See the HTTP body for details.</td></tr>
-  <tr><td>503</td></td>You have made too many requests to the Mongo Data Service and have presently been rate limited.</td></tr>
-  <tr><td>503</td></td>Service is unavailable or performing in a degraded fashion.</td></tr>
+  <tr><td>200</td><td>The operation was successful.</td></tr>
+  <tr><td>201</td><td>The entity was created. The Location header will contain the URL to query the entity.</td></tr>
+  <tr><td>400</td><td>There was bad input data submitted as part of the request.</td></tr>
+  <tr><td>401</td><td>User credentials could not be authenticated.</td></tr>
+  <tr><td>404</td><td>The entity was not found.</td></tr>
+  <tr><td>405</td><td>The HTTP method is not supported.</td></tr>
+  <tr><td>409</td><td>When creating an entity, an entity with that name already exists.</td></tr>
+  <tr><td>500</td><td>The operation was unsuccessful. See the HTTP body for details.</td></tr>
+  <tr><td>503</td><td>You have made too many requests to the Mongo Data Service and have presently been rate limited.</td></tr>
+  <tr><td>503</td><td>Service is unavailable or performing in a degraded fashion.</td></tr>
 </table>
 
 When errors occur (for example, a 500 status code), the HTTP response contains a JSON response with an error message.  
 
 
 ## Service API
-### 1. Create a database (POST <host:port>/api/mongo/databases)
+### 1. Create a database (POST host:port/api/mongo/databases)
 Example Request:  
 	POST http://localhost:9002/api/mongo/databases  
 	Content-Type: application/json  
@@ -42,7 +42,7 @@ Example Response:
 	Content-Type: application/json  
 	Server: Jetty(6.1.26)  
 
-### 2. Retrieve a database (GET <host:port>/api/mongo/databases/<dbName>)
+### 2. Retrieve a database (GET host:port/api/mongo/databases/*dbName*)
 Example Request:  
 	GET http://localhost:9002/api/mongo/databases/mongo-rest-test  
 	Content-Type: application/json  
@@ -57,7 +57,7 @@ Example Response:
 	"collections":null,  
 	"stats":{"serverUsed":"127.0.0.1:27017","collections":"3","objects":"6","avgObjSize":"69.33333333333333","dataSize":"416","storageSize":"20480","numExtents":"3","indexes":"2","indexSize":"16352","fileSize":"67108864","nsSizeMB":"16","ok":"1.0"}}  
 
-### 3. Update a database (PUT <host:port>/api/mongo/databases/<dbName>)
+### 3. Update a database (PUT host:port/api/mongo/databases/*dbName*)
 Example Request:  
 	PUT http://localhost:9002/api/mongo/databases/mongo-rest-test  
 	Content-Type: application/json  
@@ -70,7 +70,7 @@ Example Response:
 	Server: Jetty(6.1.26)  
 	"http://localhost:9002/api/mongo/databases/mongo-rest-test"  
 
-### 4. Delete a database (DELETE <host:port>/api/mongo/databases/<dbName>)
+### 4. Delete a database (DELETE host:port/api/mongo/databases/*dbName*)
 Example Request:  
 	DELETE http://localhost:9002/api/mongo/databases/mongo-rest-test  
 
@@ -80,7 +80,7 @@ Example Response:
 	Content-Type: application/json  
 	Server: Jetty(6.1.26)  
 
-### 5. Retrieve all databases (GET <host:port>/api/mongo/databases)
+### 5. Retrieve all databases (GET host:port/api/mongo/databases)
 Example Request:  
 	GET http://localhost:9002/api/mongo/databases  
 	Content-Type: application/json  
@@ -99,7 +99,7 @@ Example Response:
 	"collections":null,  
 	"stats":{"serverUsed":"127.0.0.1:27017","collections":"3","objects":"6","avgObjSize":"70.0","dataSize":"420","storageSize":"20480","numExtents":"3","indexes":"2","indexSize":"16352","fileSize":"67108864","nsSizeMB":"16","ok":"1.0"}}]  
 
-### 6. Delete all databases (DELETE <host:port>/api/mongo/databases)
+### 6. Delete all databases (DELETE host:port/api/mongo/databases)
 Example Request:  
 	DELETE http://localhost:9002/api/mongo/databases  
 
@@ -110,7 +110,7 @@ Example Response:
 	Server: Jetty(6.1.26)  
 	Deleted databases: [mongo-rest-test1, mongo-rest-test2]  
 
-### 7. Create a collection (POST <host:port>/api/mongo/databases/<dbName>/collections)
+### 7. Create a collection (POST host:port/api/mongo/databases/*dbName*/collections)
 Example Request:  
 	POST http://localhost:9002/api/mongo/databases/mongo-rest-test/collections  
 	Content-Type: application/json  
@@ -123,7 +123,7 @@ Example Response:
 	Content-Type: application/json  
 	Server: Jetty(6.1.26)  
 
-### 8. Retrieve a collection (GET <host:port>/api/mongo/databases/<dbName>/collections/<collName>)
+### 8. Retrieve a collection (GET host:port/api/mongo/databases/*dbName*/collections/*collName*)
 Example Request:  
 	GET http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection  
 	Content-Type: application/json  
@@ -139,7 +139,7 @@ Example Response:
 	"documents":[],  
 	"dbName":"mongo-rest-test"}  
 
-### 9. Update a collection (PUT <host:port>/api/mongo/databases/<dbName>/collections/<collName>)
+### 9. Update a collection (PUT host:port/api/mongo/databases/*dbName*/collections/*collName*)
 Example Request:  
 	PUT http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection  
 	Content-Type: application/json  
@@ -152,7 +152,7 @@ Example Response:
 	Server: Jetty(6.1.26)  
 	"http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection"  
 
-### 10. Delete a collection (DELETE <host:port>/api/mongo/databases/<dbName>/collections/<collName>)
+### 10. Delete a collection (DELETE host:port/api/mongo/databases/*dbName*/collections/*collName*)
 Example Request:  
 	DELETE http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection  
 
@@ -162,7 +162,7 @@ Example Response:
 	Content-Type: application/json  
 	Server: Jetty(6.1.26)  
 
-### 11. Retrieve all collections (GET <host:port>/api/mongo/databases/<dbName>/collections)
+### 11. Retrieve all collections (GET host:port/api/mongo/databases/*dbName*/collections)
 Example Request:  
 	GET http://localhost:9002/api/mongo/databases/mongo-rest-test/collections  
 	Content-Type: application/json  
@@ -183,7 +183,7 @@ Example Response:
 	"documents":[],  
 	"dbName":"mongo-rest-test"}]  
 
-### 12. Delete all collections (DELETE <host:port>/api/mongo/databases/<dbName>/collections)
+### 12. Delete all collections (DELETE host:port/api/mongo/databases/*dbName*/collections)
 Example Request:  
 	DELETE http://localhost:9002/api/mongo/databases/mongo-rest-test/collections
 
@@ -194,7 +194,7 @@ Example Response:
 	Server: Jetty(6.1.26)  
 	Deleted collections: [mongo-test-collection-1, mongo-test-collection-2]  
 
-### 13. Create an index (POST <host:port>/api/mongo/databases/<dbName>/collections/<collName>/indexes)
+### 13. Create an index (POST host:port/api/mongo/databases/*dbName*/collections/*collName*/indexes)
 Example Request:  
 	POST http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/indexes  
 	Content-Type: application/json  
@@ -207,7 +207,7 @@ Example Response:
 	Content-Type: application/json  
 	Server: Jetty(6.1.26)  
 
-### 14. Retrieve an index (GET <host:port>/api/mongo/databases/<dbName>/collections/<collName>/indexes/<index>)
+### 14. Retrieve an index (GET host:port/api/mongo/databases/*dbName*/collections/*collName*/indexes/*index*)
 Example Request:  
 	GET http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/indexes/stats-index  
 	Content-Type: application/json  
@@ -219,7 +219,7 @@ Example Response:
 	Server: Jetty(6.1.26)  
 	{"name":"stats-index","dbName":"mongo-rest-test","keys":["name","age","height"],"unique":true,"collectionName":"mongo-test-collection"}  
 
-### 15. Delete an index (DELETE <host:port>/api/mongo/databases/<dbName>/collections/<collName>/indexes/<index>)
+### 15. Delete an index (DELETE host:port/api/mongo/databases/*dbName*/collections/*collName*/indexes/*index*)
 Example Request:  
 	DELETE http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/indexes/stats-index  
 
@@ -229,7 +229,7 @@ Example Response:
 	Content-Type: application/json  
 	Server: Jetty(6.1.26)  
 
-### 16. Retrieve all indexes (GET <host:port>/api/mongo/databases/<dbName>/collections/<collName>/indexes)
+### 16. Retrieve all indexes (GET host:port/api/mongo/databases/*dbName*/collections/*collName*/indexes)
 Example Request:  
 	GET http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/indexes  
 	Content-Type: application/json  
@@ -250,7 +250,7 @@ Example Response:
 	"unique":true,  
 	"collectionName":"mongo-test-collection"}]  
 
-### 17. Delete all indexes (DELETE <host:port>/api/mongo/databases/<dbName>/collections/<collName>/indexes)
+### 17. Delete all indexes (DELETE host:port/api/mongo/databases/*dbName*/collections/*collName*/indexes)
 Example Request:  
 	DELETE http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/indexes  
 
@@ -261,49 +261,49 @@ Example Response:
 	Server: Jetty(6.1.26)  
 	Deleted indexes: [stats-index]  
 
-### 18. Create a document (POST <host:port>/api/mongo/databases/<dbName>/collections/<collName>/documents)
+### 18. Create a document (POST host:port/api/mongo/databases/*dbName*/collections/*collName*/documents)
 Example Request:  
 	
 
 Example Response:  
 	
 
-### 19. Retrieve a document (GET <host:port>/api/mongo/databases/<dbName>/collections/<collName>/documents/<docName>)
+### 19. Retrieve a document (GET host:port/api/mongo/databases/*dbName*/collections/*collName*/documents/*docName*)
 Example Request:  
 	
 
 Example Response:  
 	
 
-### 20. Update a document (PUT <host:port>/api/mongo/databases/<dbName>/collections/<collName>/documents/<docName>)
+### 20. Update a document (PUT host:port/api/mongo/databases/*dbName*/collections/*collName*/documents/*docName*)
 Example Request:  
 	
 
 Example Response:  
 	
 
-### 21. Delete a document (DELETE <host:port>/api/mongo/databases/<dbName>/collections/<collName>/documents/<docName>)
+### 21. Delete a document (DELETE host:port/api/mongo/databases/*dbName*/collections/*collName*/documents/*docName*)
 Example Request:  
 	
 
 Example Response:  
 	
 
-### 22. Retrieve all documents (GET <host:port>/api/mongo/databases/<dbName>/collections/<collName>/documents)
+### 22. Retrieve all documents (GET host:port/api/mongo/databases/*dbName*/collections/*collName*/documents)
 Example Request:  
 	
 
 Example Response:  
 	
 
-### 23. Delete all documents (DELETE <host:port>/api/mongo/databases/<dbName>/collections/<collName>/documents)
+### 23. Delete all documents (DELETE host:port/api/mongo/databases/*dbName*/collections/*collName*/documents)
 Example Request:  
 	
 
 Example Response:  
 	
 
-### 24. Ping Service (GET <host:port>/api/mongo/ping)
+### 24. Ping Service (GET host:port/api/mongo/ping)
 Example Request:  
 	GET http://localhost:9002/api/mongo/ping  
 	Content-Type: application/json  
@@ -315,7 +315,7 @@ Example Response:
 	Server: Jetty(6.1.26)  
 	Service is alive and well  
 
-### 25. Shutdown Service (GET <host:port>/api/mongo/shutdown)
+### 25. Shutdown Service (GET host:port/api/mongo/shutdown)
 Example Request:  
 	GET http://localhost:9002/api/mongo/shutdown  
 	Content-Type: application/json  
