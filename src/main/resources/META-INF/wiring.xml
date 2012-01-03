@@ -56,7 +56,13 @@
     <property name="realm" ref="realm" />
   </bean>
 
-  <bean id="realm" class="com.mulesoft.mongo.security.Realm" />
+  <bean id="realm" class="com.mulesoft.mongo.security.Realm">
+    <property name="cryptDe" ref="cryptDe" />
+  </bean>
+
+  <bean id="cryptDe" class="com.mulesoft.mongo.security.MongoBase64CryptDe">
+    <property name="mongo" ref="mongo" />
+  </bean>
 
   <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
 

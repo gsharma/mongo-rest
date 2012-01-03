@@ -14,20 +14,17 @@ import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
-
-import com.mulesoft.mongo.util.Utils;
+import org.springframework.beans.factory.annotation.Required;
 
 public class Realm extends AuthorizingRealm {
-    private static final String USER = "admin";
-    private static final String PASSWD = "r3$tfuLM0ng0";
+    private CryptDe cryptDe;
 
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
         UsernamePasswordToken userPasswordToken = (UsernamePasswordToken) token;
         String user = userPasswordToken.getUsername();
         String password = new String(userPasswordToken.getPassword());
-        if (Utils.StringUtils.isNullOrEmpty(user) || Utils.StringUtils.isNullOrEmpty(password)
-                || !USER.equalsIgnoreCase(user) || !PASSWD.equals(password)) {
+        if (!cryptDe.validate(user, password)) {
             throw new AuthenticationException("Service cannot allow access with invalid credentials");
         }
 
@@ -48,5 +45,10 @@ public class Realm extends AuthorizingRealm {
         // info.setObjectPermissions(permissions);
 
         return info;
+    }
+
+    @Required
+    public void setCryptDe(CryptDe cryptDe) {
+        this.cryptDe = cryptDe;
     }
 }

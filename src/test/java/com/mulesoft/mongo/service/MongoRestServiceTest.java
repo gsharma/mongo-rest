@@ -23,9 +23,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mulesoft.mongo.util.AppContext;
 import com.mulesoft.mongo.util.ResourceClientFactory;
+import com.mulesoft.mongo.util.Utils.EncodingUtils;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
@@ -35,8 +40,6 @@ import com.sun.jersey.api.client.GenericType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class MongoRestServiceTest {
     private Server server;
-    private static final String testUsername = "admin";
-    private static final String testPassword = "r3$tfuLM0ng0";
     private static final String baseUri = "http://localhost:9002/api/mongo";
     private static final String baseDbUri = baseUri + "/databases";
     private Client clientHandle;
@@ -61,6 +64,16 @@ public class MongoRestServiceTest {
         server.setStopAtShutdown(true);
         server.start();
         WebApplicationContextUtils.getWebApplicationContext(context.getServletContext());
+
+        String testUsername = "junit";
+        String testPassword = EncodingUtils.encodeBase64("r3$tfuLM0ng0");
+        Mongo mongo = (Mongo) AppContext.getApplicationContext().getBean("mongo");
+        DB db = mongo.getDB("credentials");
+        DBCollection collection = db.getCollection("data_service");
+        DBObject credentials = new BasicDBObject();
+        credentials.put("user", testUsername);
+        credentials.put("password", testPassword);
+        collection.insert(credentials);
 
         clientHandle = ResourceClientFactory.getClientHandle(testUsername, testPassword, 0, 0);
     }
