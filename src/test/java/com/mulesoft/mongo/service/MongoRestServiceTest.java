@@ -203,7 +203,7 @@ public class MongoRestServiceTest {
         names.add(dbName2);
         for (com.mulesoft.mongo.to.response.Database database : databases) {
             assertTrue(names.contains(database.getName()));
-            assertEquals(com.mulesoft.mongo.to.response.WriteConcern.SAFE, database.getWriteConcern());
+            assertEquals(com.mulesoft.mongo.to.response.WriteConcern.FSYNC_SAFE, database.getWriteConcern());
         }
     }
 
