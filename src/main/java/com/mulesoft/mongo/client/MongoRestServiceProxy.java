@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface MongoRestServiceProxy {
 
-    public com.mulesoft.mongo.to.response.Database createDatabase(com.mulesoft.mongo.to.request.Database database);
+    public String createDatabase(com.mulesoft.mongo.to.request.Database database);
 
     public com.mulesoft.mongo.to.response.Database findDatabase(String dbName);
 
