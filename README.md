@@ -328,15 +328,23 @@ Example Response:
 
 
 ## Deployment
-The service is deployable as a WAR on Jetty or Tomcat. If you have to, feel free to drop the WAR on a beefier app-server like JBoss/Weblogic/Websphere. The service does expect a MongoDB installation. Download and install your platform [MongoDB Release](http://www.mongodb.org/downloads)  
+The service is deployable as a WAR on Jetty or Tomcat. If you have to, feel free to drop the WAR on a beefier app-server like JBoss/Weblogic/Websphere. The service does expect a MongoDB installation. Download and install your platform [MongoDB Release](http://www.mongodb.org/downloads). To get started, clone the project and 'mvn package'.  
 
 
 ## Testing
 The JUnit tests run against the service deployed on Jetty.  
 
 
+## Java Client
+There is a simple Java Client/Proxy library jar that can be created using 'mvn package -Pclient-jar'. Look for the client jar in the target folder.   
+
+
 ## Scaling
 I would recommend scaling out the backing MongoDB first instead of trying to scale out the conduit. To that effect, consider a configuration of Sharded ReplicaSets. You will also need to tweak MongoOptions. If there's still a need to throttle the data service, use separate request/response message pipes.  
+
+
+## Contributions
+Fork, spoon, knive the project as you see fit (: Pull requests with bug fixes are very welcome. If you encounter an issue and do not have the time to submit a patch, please log a Github issue against the project.  
 
 
 ## License

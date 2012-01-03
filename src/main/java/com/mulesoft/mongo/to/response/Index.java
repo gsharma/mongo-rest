@@ -8,6 +8,7 @@ public class Index {
     private String dbName;
     private boolean unique;
     private Set<String> keys;
+    private String locationUri;
 
     public String getCollectionName() {
         return collectionName;
@@ -49,12 +50,20 @@ public class Index {
         this.unique = unique;
     }
 
+    public String getLocationUri() {
+        return locationUri;
+    }
+
+    public void setLocationUri(String locationUri) {
+        this.locationUri = locationUri;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("Index [name=").append(name).append(", collectionName=").append(collectionName)
                 .append(", dbName=").append(dbName).append(", unique=").append(unique).append(", keys=").append(keys)
-                .append("]");
+                .append(", locationUri=").append(locationUri).append("]");
         return builder.toString();
     }
 }

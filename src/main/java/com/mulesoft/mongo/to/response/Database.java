@@ -8,6 +8,7 @@ public class Database {
     private WriteConcern writeConcern;
     private List<Collection> collections;
     private Map<String, String> stats;
+    private String locationUri;
 
     public String getName() {
         return name;
@@ -41,11 +42,20 @@ public class Database {
         this.stats = stats;
     }
 
+    public String getLocationUri() {
+        return locationUri;
+    }
+
+    public void setLocationUri(String locationUri) {
+        this.locationUri = locationUri;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("Database [name=").append(name).append(", writeConcern=").append(writeConcern)
-                .append(", collections=").append(collections).append(", stats=").append(stats).append("]");
+                .append(", collections=").append(collections).append(", stats=").append(stats).append(", locationUri=")
+                .append(locationUri).append("]");
         return builder.toString();
     }
 }

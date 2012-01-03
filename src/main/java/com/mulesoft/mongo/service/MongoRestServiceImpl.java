@@ -812,12 +812,12 @@ public class MongoRestServiceImpl implements MongoRestService {
                 .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
     }
 
-    // users should wire shiro to allow only privileged users to shutdown
     @GET
     @Path("/shutdown")
     @Override
     public Response shutdown(@Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext) {
+        // wire shiro to allow only privileged users to shutdown service
         Response response = null;
         if (!shutdown) {
             shutdown = true;
@@ -939,7 +939,7 @@ public class MongoRestServiceImpl implements MongoRestService {
     }
 
     private void authServiceAgainstMongo(final DB db) throws MongoException {
-        if (!StringUtils.isNullOrEmpty(configuration.getDataStoreUsername())
+        if (!db.isAuthenticated() && !StringUtils.isNullOrEmpty(configuration.getDataStoreUsername())
                 && !StringUtils.isNullOrEmpty(configuration.getDataStorePassword())) {
             db.authenticate(configuration.getDataStoreUsername(), configuration.getDataStorePassword().toCharArray());
         }

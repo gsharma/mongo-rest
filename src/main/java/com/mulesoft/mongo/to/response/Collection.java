@@ -8,6 +8,7 @@ public class Collection {
     private List<Document> documents;
     private List<Index> indexes;
     private WriteConcern writeConcern;
+    private String locationUri;
 
     public String getName() {
         return name;
@@ -49,12 +50,20 @@ public class Collection {
         this.documents = documents;
     }
 
+    public String getLocationUri() {
+        return locationUri;
+    }
+
+    public void setLocationUri(String locationUri) {
+        this.locationUri = locationUri;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("Collection [name=").append(name).append(", dbName=").append(dbName).append(", documents=")
                 .append(documents).append(", indexes=").append(indexes).append(", writeConcern=").append(writeConcern)
-                .append("]");
+                .append(", locationUri=").append(locationUri).append("]");
         return builder.toString();
     }
 }

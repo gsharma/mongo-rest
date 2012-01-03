@@ -279,8 +279,10 @@
           <plugin>
             <artifactId>maven-jar-plugin</artifactId>
             <configuration>
+              <classifier>client</classifier>
               <includes>
-                <include>**/com/mulesoft/mongo/security/*.java</include>
+                <include>**/com/mulesoft/mongo/client/*</include>
+                <include>**/com/mulesoft/mongo/to/**</include>
               </includes>
             </configuration>
           </plugin>

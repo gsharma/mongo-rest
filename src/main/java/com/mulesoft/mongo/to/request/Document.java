@@ -2,6 +2,7 @@ package com.mulesoft.mongo.to.request;
 
 public class Document {
     private String json;
+    private String name;
 
     public String getJson() {
         return json;
@@ -9,6 +10,14 @@ public class Document {
 
     public void setJson(String json) {
         this.json = json;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override

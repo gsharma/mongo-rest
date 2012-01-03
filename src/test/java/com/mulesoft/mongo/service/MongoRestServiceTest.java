@@ -39,7 +39,7 @@ public class MongoRestServiceTest {
     private static final String testPassword = "r3$tfuLM0ng0";
     private static final String baseUri = "http://localhost:9002/api/mongo";
     private static final String baseDbUri = baseUri + "/databases";
-    protected Client clientHandle;
+    private Client clientHandle;
 
     @BeforeClass
     public static void useTestOverrides() {
