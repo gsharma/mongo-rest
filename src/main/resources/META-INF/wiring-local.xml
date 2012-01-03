@@ -69,5 +69,6 @@
 
   <bean id="mongoService" class="com.mulesoft.mongo.service.MongoRestServiceImpl">
     <property name="mongo" ref="mongo" />
+    <property name="configuration" ref="configuration" />
   </bean>
 </beans>

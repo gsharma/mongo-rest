@@ -4,16 +4,21 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import com.mongodb.DB;
 import com.mongodb.Mongo;
+import com.mongodb.MongoException;
 import com.mongodb.MongoOptions;
 import com.mongodb.ServerAddress;
 import com.mulesoft.mongo.util.Utils.StringUtils;
 
 public class MongoFactoryBean extends AbstractFactoryBean<Mongo> {
+    private Logger logger = LoggerFactory.getLogger(MongoFactoryBean.class);
     private List<ServerAddress> replicaSetSeeds = new ArrayList<ServerAddress>();
     private MongoOptions mongoOptions;
     private Configuration configuration;
@@ -33,6 +38,7 @@ public class MongoFactoryBean extends AbstractFactoryBean<Mongo> {
     }
 
     protected Mongo createInstance() throws Exception {
+        Mongo mongo = null;
         if (mongoOptions == null) {
             mongoOptions = new MongoOptions();
             mongoOptions.safe = true;
@@ -40,13 +46,23 @@ public class MongoFactoryBean extends AbstractFactoryBean<Mongo> {
             // mongoOptions.slaveOk = true;
         }
         setMultiAddress(configuration.getDataStoreReplicas().split(","));
-        if (replicaSetSeeds.size() > 0) {
-            if (mongoOptions != null) {
-                return new Mongo(replicaSetSeeds, mongoOptions);
+        logger.debug("Created Mongo with MongoOptions: [" + mongoOptions.toString() + "], ReplicaSets: "
+                + replicaSetSeeds);
+        try {
+            if (replicaSetSeeds.size() > 0) {
+                if (mongoOptions != null) {
+                    mongo = new Mongo(replicaSetSeeds, mongoOptions);
+                } else {
+                    mongo = new Mongo(replicaSetSeeds);
+                }
+            } else {
+                mongo = new Mongo();
             }
-            return new Mongo(replicaSetSeeds);
+        } catch (MongoException mongoException) {
+            logger.error("Problem creating Mongo instance", mongoException);
+            throw mongoException;
         }
-        return new Mongo();
+        return mongo;
     }
 
     public void setMultiAddress(String[] serverAddresses) {
@@ -89,10 +105,7 @@ public class MongoFactoryBean extends AbstractFactoryBean<Mongo> {
         replSeeds(serverAddress);
     }
 
-    public Configuration getConfiguration() {
-        return configuration;
-    }
-
+    @Required
     public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
     }

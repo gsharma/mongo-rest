@@ -121,7 +121,33 @@ public class MongoRestServiceTest {
 
     @Test
     public void testUpdateDatabase() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        db.setWriteConcern(com.mulesoft.mongo.to.request.WriteConcern.SAFE);
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        URI dbUrl = response.getLocation();
+
+        response = clientHandle.resource(dbUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        com.mulesoft.mongo.to.response.Database database = response
+                .getEntity(com.mulesoft.mongo.to.response.Database.class);
+        assertNotNull(database);
+        assertEquals(dbName, database.getName());
+        assertEquals(com.mulesoft.mongo.to.response.WriteConcern.SAFE, database.getWriteConcern());
+
+        db.setWriteConcern(com.mulesoft.mongo.to.request.WriteConcern.FSYNC_SAFE);
+        response = clientHandle.resource(dbUrl).type(MediaType.APPLICATION_JSON_TYPE).put(ClientResponse.class, db);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(dbUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        database = response.getEntity(com.mulesoft.mongo.to.response.Database.class);
+        assertNotNull(database);
+        assertEquals(dbName, database.getName());
+        assertEquals(com.mulesoft.mongo.to.response.WriteConcern.FSYNC_SAFE, database.getWriteConcern());
     }
 
     @Test
@@ -133,8 +159,7 @@ public class MongoRestServiceTest {
                 .post(ClientResponse.class, db);
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 
-        response = clientHandle.resource(response.getLocation()).type(MediaType.APPLICATION_JSON_TYPE)
-                .delete(ClientResponse.class);
+        response = clientHandle.resource(response.getLocation()).delete(ClientResponse.class);
         assertEquals(Status.OK.getStatusCode(), response.getStatus());
     }
 
@@ -356,7 +381,8 @@ public class MongoRestServiceTest {
         response = clientHandle.resource(collUrl2).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
         assertEquals(Status.OK.getStatusCode(), response.getStatus());
 
-        response = clientHandle.resource(dbUrl + "/collections").get(ClientResponse.class);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .get(ClientResponse.class);
         assertEquals(Status.OK.getStatusCode(), response.getStatus());
     }
 

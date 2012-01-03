@@ -34,12 +34,15 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
+import com.mongodb.MongoException;
 import com.mulesoft.mongo.exception.AuthenticationException;
 import com.mulesoft.mongo.exception.AuthorizationException;
 import com.mulesoft.mongo.security.Credentials;
+import com.mulesoft.mongo.util.Configuration;
 import com.mulesoft.mongo.util.HttpStatusMapper;
 import com.mulesoft.mongo.util.HttpStatusMapper.ClientError;
 import com.mulesoft.mongo.util.HttpStatusMapper.ServerError;
+import com.mulesoft.mongo.util.HttpStatusMapper.Successful;
 import com.mulesoft.mongo.util.Utils;
 import com.mulesoft.mongo.util.Utils.StringUtils;
 import com.sun.jersey.spi.resource.Singleton;
@@ -56,6 +59,7 @@ public class MongoRestServiceImpl implements MongoRestService {
     private static final String FILTERED_INDEX = "_id_";
     private static final int COLLECTION_DOC_CAP = 10000;
     private volatile boolean shutdown;
+    private Configuration configuration;
     private Mongo mongo;
 
     @POST
@@ -76,6 +80,7 @@ public class MongoRestServiceImpl implements MongoRestService {
             }
 
             DB db = mongo.getDB(dbName);
+            authServiceAgainstMongo(db);
             if (database.getWriteConcern() != null) {
                 db.setWriteConcern(database.getWriteConcern().getMongoWriteConcern());
             }
@@ -107,10 +112,12 @@ public class MongoRestServiceImpl implements MongoRestService {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
             boolean created = true;
-            if (mongo.getDatabaseNames().contains(dbName)) {
+            if (mongo.getDatabaseNames().contains(dbNamespace)) {
                 created = false;
             }
+
             DB db = mongo.getDB(dbNamespace);
+            authServiceAgainstMongo(db);
             if (database.getWriteConcern() != null) {
                 db.setWriteConcern(database.getWriteConcern().getMongoWriteConcern());
             }
@@ -257,6 +264,7 @@ public class MongoRestServiceImpl implements MongoRestService {
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
             if (mongo.getDatabaseNames().contains(dbNamespace)) {
                 DB db = mongo.getDB(dbNamespace);
+                authServiceAgainstMongo(db);
                 DBObject options = new BasicDBObject();
                 options.put("max", COLLECTION_DOC_CAP);
                 DBCollection dbCollection = db.createCollection(collection.getName(), options);
@@ -292,6 +300,7 @@ public class MongoRestServiceImpl implements MongoRestService {
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
             if (mongo.getDatabaseNames().contains(dbNamespace)) {
                 DB db = mongo.getDB(dbNamespace);
+                authServiceAgainstMongo(db);
                 if (db.getCollectionNames().contains(collName)) {
                     com.mulesoft.mongo.to.response.Collection collection = searchCollection(collName, dbName, db);
                     response = Response.ok(collection).build();
@@ -325,6 +334,7 @@ public class MongoRestServiceImpl implements MongoRestService {
 
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
             DB db = mongo.getDB(dbNamespace);
+            authServiceAgainstMongo(db);
             DBCollection dbCollection = null;
             if (mongo.getDatabaseNames().contains(dbNamespace)) {
                 URI statusSubResource = uriInfo.getBaseUriBuilder().path(MongoRestServiceImpl.class)
@@ -369,6 +379,7 @@ public class MongoRestServiceImpl implements MongoRestService {
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
             if (mongo.getDatabaseNames().contains(dbNamespace)) {
                 DB db = mongo.getDB(dbNamespace);
+                authServiceAgainstMongo(db);
                 if (db.getCollectionNames().contains(collName)) {
                     DBCollection collection = db.getCollection(collName);
                     collection.dropIndexes();
@@ -403,8 +414,12 @@ public class MongoRestServiceImpl implements MongoRestService {
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
             if (mongo.getDatabaseNames().contains(dbNamespace)) {
                 DB db = mongo.getDB(dbNamespace);
+                authServiceAgainstMongo(db);
                 List<com.mulesoft.mongo.to.response.Collection> collections = new ArrayList<com.mulesoft.mongo.to.response.Collection>();
                 for (String collName : db.getCollectionNames()) {
+                    if (STATS_COLLECTION.equals(collName) || SYS_INDEXES_COLLECTION.equals(collName)) {
+                        continue;
+                    }
                     com.mulesoft.mongo.to.response.Collection collection = searchCollection(collName, dbName, db);
                     collections.add(collection);
                 }
@@ -434,15 +449,18 @@ public class MongoRestServiceImpl implements MongoRestService {
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
             if (mongo.getDatabaseNames().contains(dbNamespace)) {
                 DB db = mongo.getDB(dbNamespace);
+                authServiceAgainstMongo(db);
+                List<String> collections = new ArrayList<String>();
                 for (String collName : db.getCollectionNames()) {
                     if (collName.equals(STATS_COLLECTION) || collName.equals(SYS_INDEXES_COLLECTION)) {
                         continue;
                     }
+                    collections.add(collName);
                     DBCollection collection = db.getCollection(collName);
                     collection.dropIndexes();
                     collection.drop();
                 }
-                response = Response.ok().build();
+                response = Response.ok("Deleted collections: " + collections).build();
             } else {
                 response = Response.status(ClientError.NOT_FOUND.code()).entity(dbName + " does not exist").build();
             }
@@ -469,6 +487,7 @@ public class MongoRestServiceImpl implements MongoRestService {
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
             if (mongo.getDatabaseNames().contains(dbNamespace)) {
                 DB db = mongo.getDB(dbNamespace);
+                authServiceAgainstMongo(db);
                 if (db.getCollectionNames().contains(collName)) {
                     DBCollection dbCollection = db.getCollection(collName);
                     List<String> keys = index.getKeys();
@@ -521,6 +540,7 @@ public class MongoRestServiceImpl implements MongoRestService {
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
             if (mongo.getDatabaseNames().contains(dbNamespace)) {
                 DB db = mongo.getDB(dbNamespace);
+                authServiceAgainstMongo(db);
                 if (db.getCollectionNames().contains(collName)) {
                     DBCollection dbCollection = db.getCollection(collName);
                     List<DBObject> indexInfos = dbCollection.getIndexInfo();
@@ -575,6 +595,7 @@ public class MongoRestServiceImpl implements MongoRestService {
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
             if (mongo.getDatabaseNames().contains(dbNamespace)) {
                 DB db = mongo.getDB(dbNamespace);
+                authServiceAgainstMongo(db);
                 if (db.getCollectionNames().contains(collName)) {
                     DBCollection dbCollection = db.getCollection(collName);
                     List<DBObject> indexInfos = dbCollection.getIndexInfo();
@@ -623,6 +644,7 @@ public class MongoRestServiceImpl implements MongoRestService {
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
             if (mongo.getDatabaseNames().contains(dbNamespace)) {
                 DB db = mongo.getDB(dbNamespace);
+                authServiceAgainstMongo(db);
                 if (db.getCollectionNames().contains(collName)) {
                     DBCollection dbCollection = db.getCollection(collName);
                     List<com.mulesoft.mongo.to.response.Index> indexes = new ArrayList<com.mulesoft.mongo.to.response.Index>();
@@ -670,17 +692,20 @@ public class MongoRestServiceImpl implements MongoRestService {
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
             if (mongo.getDatabaseNames().contains(dbNamespace)) {
                 DB db = mongo.getDB(dbNamespace);
+                authServiceAgainstMongo(db);
                 if (db.getCollectionNames().contains(collName)) {
                     DBCollection dbCollection = db.getCollection(collName);
                     List<DBObject> indexInfos = dbCollection.getIndexInfo();
+                    List<String> indexNames = new ArrayList<String>();
                     for (DBObject indexInfo : indexInfos) {
                         String indexName = (String) indexInfo.get("name");
                         if (FILTERED_INDEX.equals(indexName)) {
                             continue;
                         }
+                        indexNames.add(indexName);
                         dbCollection.dropIndex(indexName);
                     }
-                    response = Response.ok().build();
+                    response = Response.ok("Deleted indexes: " + indexNames).build();
                 } else {
                     response = Response.status(ClientError.NOT_FOUND.code())
                             .entity(collName + " does not exist in " + dbName).build();
@@ -782,9 +807,9 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response ping(@Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext) {
-        return !shutdown && mongo.getConnector().isOpen() ? Response.ok().build() : Response
-                .status(ServerError.SERVICE_UNAVAILABLE.code()).entity(ServerError.SERVICE_UNAVAILABLE.message())
-                .build();
+        return !shutdown && mongo.getConnector().isOpen() ? Response.ok().entity(Successful.SERVICE_ALIVE.message())
+                .build() : Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
     }
 
     // users should wire shiro to allow only privileged users to shutdown
@@ -813,6 +838,7 @@ public class MongoRestServiceImpl implements MongoRestService {
     private com.mulesoft.mongo.to.response.Database searchDatabase(String dbName, String dbNamespace,
             boolean collDetails) {
         DB db = mongo.getDB(dbNamespace);
+        authServiceAgainstMongo(db);
         com.mulesoft.mongo.to.response.Database database = new com.mulesoft.mongo.to.response.Database();
         database.setName(dbName);
         database.setWriteConcern(com.mulesoft.mongo.to.response.WriteConcern.fromMongoWriteConcern(db.getWriteConcern()));
@@ -912,6 +938,13 @@ public class MongoRestServiceImpl implements MongoRestService {
         return new Credentials(null, null, username, password, userIP, userAgent, uriInfo.getRequestUri().toString());
     }
 
+    private void authServiceAgainstMongo(final DB db) throws MongoException {
+        if (!StringUtils.isNullOrEmpty(configuration.getDataStoreUsername())
+                && !StringUtils.isNullOrEmpty(configuration.getDataStorePassword())) {
+            db.authenticate(configuration.getDataStoreUsername(), configuration.getDataStorePassword().toCharArray());
+        }
+    }
+
     private void logError(String message, Throwable exception, HttpHeaders headers, UriInfo uriInfo) {
         logRequestContext(headers, uriInfo);
         logger.error(message, exception);
@@ -930,11 +963,15 @@ public class MongoRestServiceImpl implements MongoRestService {
     private Response lobException(Exception exception, HttpHeaders headers, UriInfo uriInfo) {
         Response response = null;
         if (exception instanceof AuthenticationException || exception instanceof AuthorizationException) {
-            logError("mongo data service failed", exception, headers, uriInfo);
+            logError("Service failure: user-auth", exception, headers, uriInfo);
             response = Response.status(ClientError.UNAUTHORIZED.code()).entity(ClientError.UNAUTHORIZED.message())
                     .build();
+        } else if (exception instanceof MongoException) {
+            logError("Service failure: mongo-persistence", exception, headers, uriInfo);
+            response = Response.status(ServerError.RUNTIME_ERROR.code()).entity(ServerError.RUNTIME_ERROR.message())
+                    .build();
         } else {
-            logError("mongo data service failed", exception, headers, uriInfo);
+            logError("Service failure: see-stacktrace", exception, headers, uriInfo);
             response = Response.status(ServerError.RUNTIME_ERROR.code()).entity(ServerError.RUNTIME_ERROR.message())
                     .build();
         }
@@ -948,6 +985,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Required
     public void setMongo(Mongo mongo) {
         this.mongo = mongo;
+    }
+
+    @Required
+    public void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
         // BasicConfigurator.configure(); Testing only
     }
 }

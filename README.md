@@ -5,7 +5,7 @@ The Mongo Data Service is a RESTful data service intended for use in a distribut
 
 
 ## User Authentication
-To use the API, you can use any HTTP client. All APIs use JSON as the data format. If you use Java, we recommend you use the Jersey client or HttpClient with Jackson for JSON support. All operations require HTTP Basic Authentication; service uses Apache Shiro underneath. I considered session leasing but the Basic Auth overhead is just not enough to justify lease management on the server-side.  
+To use the API, you can use any HTTP client. All APIs use JSON as the data format. If you use Java, recommend you use the Jersey client or HttpClient with Jackson for JSON support. All operations require HTTP Basic Authentication; service uses Apache Shiro underneath. I considered session leasing but the Basic Auth overhead is just not enough to justify lease management on the server-side.  
 
 
 ## Status Codes and Error Handling
@@ -30,52 +30,301 @@ When errors occur (for example, a 500 status code), the HTTP response contains a
 
 ## Service API
 ### 1. Create a database (POST <host:port>/api/mongo/databases)
+Example Request:  
+	POST http://localhost:9002/api/mongo/databases  
+	Content-Type: application/json  
+	{"name":"mongo-rest-test"}  
+
+Example Response:  
+	201  
+	Content-Length: 0  
+	Location: http://localhost:9002/api/mongo/databases/mongo-rest-test  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
 
 ### 2. Retrieve a database (GET <host:port>/api/mongo/databases/<dbName>)
+Example Request:  
+	GET http://localhost:9002/api/mongo/databases/mongo-rest-test  
+	Content-Type: application/json  
+
+Example Response:  
+	200  
+	Transfer-Encoding: chunked  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	{"name":"mongo-rest-test",  
+	"writeConcern":"SAFE",  
+	"collections":null,  
+	"stats":{"serverUsed":"127.0.0.1:27017","collections":"3","objects":"6","avgObjSize":"69.33333333333333","dataSize":"416","storageSize":"20480","numExtents":"3","indexes":"2","indexSize":"16352","fileSize":"67108864","nsSizeMB":"16","ok":"1.0"}}  
 
 ### 3. Update a database (PUT <host:port>/api/mongo/databases/<dbName>)
+Example Request:  
+	PUT http://localhost:9002/api/mongo/databases/mongo-rest-test  
+	Content-Type: application/json  
+	{"name":"mongo-rest-test","writeConcern":"FSYNC_SAFE"}  
+
+Example Response:  
+	200  
+	Transfer-Encoding: chunked  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	"http://localhost:9002/api/mongo/databases/mongo-rest-test"  
 
 ### 4. Delete a database (DELETE <host:port>/api/mongo/databases/<dbName>)
+Example Request:  
+	DELETE http://localhost:9002/api/mongo/databases/mongo-rest-test  
+
+Example Response:  
+	200  
+	Content-Length: 0  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
 
 ### 5. Retrieve all databases (GET <host:port>/api/mongo/databases)
+Example Request:  
+	GET http://localhost:9002/api/mongo/databases  
+	Content-Type: application/json  
+
+Example Response:  
+	200  
+	Transfer-Encoding: chunked  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	[{"name":"mongo-rest-test1",  
+	"writeConcern":"SAFE",  
+	"collections":null,  
+	"stats":{"serverUsed":"127.0.0.1:27017","collections":"3","objects":"6","avgObjSize":"70.0","dataSize":"420","storageSize":"20480","numExtents":"3","indexes":"2","indexSize":"16352","fileSize":"201326592","nsSizeMB":"16","ok":"1.0"}},  
+	{"name":"mongo-rest-test2",  
+	"writeConcern":"SAFE",  
+	"collections":null,  
+	"stats":{"serverUsed":"127.0.0.1:27017","collections":"3","objects":"6","avgObjSize":"70.0","dataSize":"420","storageSize":"20480","numExtents":"3","indexes":"2","indexSize":"16352","fileSize":"67108864","nsSizeMB":"16","ok":"1.0"}}]  
 
 ### 6. Delete all databases (DELETE <host:port>/api/mongo/databases)
+Example Request:  
+	DELETE http://localhost:9002/api/mongo/databases  
+
+Example Response:  
+	200  
+	Transfer-Encoding: chunked  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	Deleted databases: [mongo-rest-test1, mongo-rest-test2]  
 
 ### 7. Create a collection (POST <host:port>/api/mongo/databases/<dbName>/collections)
+Example Request:  
+	POST http://localhost:9002/api/mongo/databases/mongo-rest-test/collections  
+	Content-Type: application/json  
+	{"name":"mongo-collection"}  
+
+Example Response:  
+	201  
+	Content-Length: 0  
+	Location: http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-collection  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
 
 ### 8. Retrieve a collection (GET <host:port>/api/mongo/databases/<dbName>/collections/<collName>)
+Example Request:  
+	GET http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection  
+	Content-Type: application/json  
+
+Example Response:  
+	200  
+	Transfer-Encoding: chunked  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	{"name":"mongo-test-collection",  
+	"writeConcern":"SAFE",  
+	"indexes":[{"name":null,"dbName":"mongo-rest-test","keys":["_id"],"unique":false,"collectionName":"mongo-test-collection"}],  
+	"documents":[],  
+	"dbName":"mongo-rest-test"}  
 
 ### 9. Update a collection (PUT <host:port>/api/mongo/databases/<dbName>/collections/<collName>)
+Example Request:  
+	PUT http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection  
+	Content-Type: application/json  
+	{"name":"mongo-test-collection","writeConcern":"FSYNC_SAFE"}  
+
+Example Response:  
+	200  
+	Transfer-Encoding: chunked  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	"http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection"  
 
 ### 10. Delete a collection (DELETE <host:port>/api/mongo/databases/<dbName>/collections/<collName>)
+Example Request:  
+	DELETE http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection  
+
+Example Response:  
+	200  
+	Content-Length: 0  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
 
 ### 11. Retrieve all collections (GET <host:port>/api/mongo/databases/<dbName>/collections)
+Example Request:  
+	GET http://localhost:9002/api/mongo/databases/mongo-rest-test/collections  
+	Content-Type: application/json  
+
+Example Response:  
+	200  
+	Transfer-Encoding: chunked  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	[{"name":"mongo-test-collection-1",  
+	"writeConcern":"SAFE",  
+	"indexes":[{"name":null,"dbName":"mongo-rest-test","keys":["_id"],"unique":false,"collectionName":"mongo-test-collection-1"}],  
+	"documents":[],  
+	"dbName":"mongo-rest-test"},  
+	{"name":"mongo-test-collection-2",  
+	"writeConcern":"SAFE",  
+	"indexes":[{"name":null,"dbName":"mongo-rest-test","keys":["_id"],"unique":false,"collectionName":"mongo-test-collection-2"}],  
+	"documents":[],  
+	"dbName":"mongo-rest-test"}]  
 
 ### 12. Delete all collections (DELETE <host:port>/api/mongo/databases/<dbName>/collections)
+Example Request:  
+	DELETE http://localhost:9002/api/mongo/databases/mongo-rest-test/collections
+
+Example Response:  
+	200  
+	Transfer-Encoding: chunked  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	Deleted collections: [mongo-test-collection-1, mongo-test-collection-2]  
 
 ### 13. Create an index (POST <host:port>/api/mongo/databases/<dbName>/collections/<collName>/indexes)
+Example Request:  
+	POST http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/indexes  
+	Content-Type: application/json  
+	{"name":"simple-index","keys":["name","age"],"unique":true}  
+
+Example Response:  
+	201  
+	Content-Length: 0  
+	Location: http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/indexes/simple-index  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
 
 ### 14. Retrieve an index (GET <host:port>/api/mongo/databases/<dbName>/collections/<collName>/indexes/<index>)
+Example Request:  
+	GET http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/indexes/stats-index  
+	Content-Type: application/json  
+
+Example Response:  
+	200  
+	Transfer-Encoding: chunked  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	{"name":"stats-index","dbName":"mongo-rest-test","keys":["name","age","height"],"unique":true,"collectionName":"mongo-test-collection"}  
 
 ### 15. Delete an index (DELETE <host:port>/api/mongo/databases/<dbName>/collections/<collName>/indexes/<index>)
+Example Request:  
+	DELETE http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/indexes/stats-index  
+
+Example Response:  
+	200  
+	Content-Length: 0  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
 
 ### 16. Retrieve all indexes (GET <host:port>/api/mongo/databases/<dbName>/collections/<collName>/indexes)
+Example Request:  
+	GET http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/indexes  
+	Content-Type: application/json  
+
+Example Response:  
+	200  
+	Transfer-Encoding: chunked  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	[{"name":"stats-index",  
+	"dbName":"mongo-rest-test",  
+	"keys":["name","age","height"],  
+	"unique":true,  
+	"collectionName":"mongo-test-collection"},  
+	{"name":"location-index",  
+	"dbName":"mongo-rest-test",  
+	"keys":["address","phone"],  
+	"unique":true,  
+	"collectionName":"mongo-test-collection"}]  
 
 ### 17. Delete all indexes (DELETE <host:port>/api/mongo/databases/<dbName>/collections/<collName>/indexes)
+Example Request:  
+	DELETE http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/indexes  
+
+Example Response:  
+	200  
+	Content-Length: 0  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	Deleted indexes: [stats-index]  
 
 ### 18. Create a document (POST <host:port>/api/mongo/databases/<dbName>/collections/<collName>/documents)
+Example Request:  
+	
+
+Example Response:  
+	
 
 ### 19. Retrieve a document (GET <host:port>/api/mongo/databases/<dbName>/collections/<collName>/documents/<docName>)
+Example Request:  
+	
+
+Example Response:  
+	
 
 ### 20. Update a document (PUT <host:port>/api/mongo/databases/<dbName>/collections/<collName>/documents/<docName>)
+Example Request:  
+	
+
+Example Response:  
+	
 
 ### 21. Delete a document (DELETE <host:port>/api/mongo/databases/<dbName>/collections/<collName>/documents/<docName>)
+Example Request:  
+	
+
+Example Response:  
+	
 
 ### 22. Retrieve all documents (GET <host:port>/api/mongo/databases/<dbName>/collections/<collName>/documents)
+Example Request:  
+	
+
+Example Response:  
+	
 
 ### 23. Delete all documents (DELETE <host:port>/api/mongo/databases/<dbName>/collections/<collName>/documents)
+Example Request:  
+	
+
+Example Response:  
+	
 
 ### 24. Ping Service (GET <host:port>/api/mongo/ping)
+Example Request:  
+	GET http://localhost:9002/api/mongo/ping  
+	Content-Type: application/json  
+
+Example Response:  
+	200  
+	Content-Length: 0  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	Service is alive and well  
+
+### 25. Shutdown Service (GET <host:port>/api/mongo/shutdown)
+Example Request:  
+	GET http://localhost:9002/api/mongo/shutdown  
+	Content-Type: application/json  
+
+Example Response:  
+	200  
+	Content-Length: 0  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
 
 
 ## Deployment
@@ -84,6 +333,10 @@ The service is deployable as a WAR on Jetty or Tomcat. If you have to, feel free
 
 ## Testing
 The JUnit tests run against the service deployed on Jetty.  
+
+
+## Scaling
+I would recommend scaling out the backing MongoDB first instead of trying to scale out the conduit. To that effect, consider a configuration of Sharded ReplicaSets. You will also need to tweak MongoOptions. If there's still a need to throttle the data service, use separate request/response message pipes.  
 
 
 ## License
