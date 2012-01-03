@@ -120,4 +120,8 @@ public interface MongoRestService {
     // GET /ping
     public Response ping(@Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
+
+    // GET /shutdown
+    public Response shutdown(@Context HttpHeaders headers, @Context UriInfo uriInfo,
+            @Context SecurityContext securityContext);
 }

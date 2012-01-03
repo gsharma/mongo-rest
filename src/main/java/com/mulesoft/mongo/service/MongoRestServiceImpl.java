@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -54,9 +53,9 @@ public class MongoRestServiceImpl implements MongoRestService {
     private static final String STATS_COLLECTION = "stats";
     private static final String STATS_INDEX = "statsIndex";
     private static final String SYS_INDEXES_COLLECTION = "system.indexes";
-    // private static final Set<String> FILTERED_INDEX_FIELDS = new
-    // HashSet<String>(Arrays.asList(new String[] { "v","ns", "name" }));
+    private static final String FILTERED_INDEX = "_id_";
     private static final int COLLECTION_DOC_CAP = 10000;
+    private volatile boolean shutdown;
     private Mongo mongo;
 
     @POST
@@ -64,8 +63,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response createDatabase(com.mulesoft.mongo.to.request.Database database, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             String dbName = constructDbNamespace(credentials.getUserName(), database.getName());
@@ -96,8 +98,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response updateDatabase(com.mulesoft.mongo.to.request.Database database, @PathParam("dbName") String dbName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
@@ -131,8 +136,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response deleteDatabase(@PathParam("dbName") String dbName, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
@@ -155,8 +163,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     public Response findDatabase(@PathParam("dbName") String dbName,
             @QueryParam("collDetails") @DefaultValue("false") boolean collDetails, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
@@ -178,8 +189,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response findDatabases(@QueryParam("collDetails") @DefaultValue("false") boolean collDetails,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             List<com.mulesoft.mongo.to.response.Database> databases = new ArrayList<com.mulesoft.mongo.to.response.Database>();
@@ -204,8 +218,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response deleteDatabases(@Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             List<String> databases = new ArrayList<String>();
@@ -230,8 +247,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     public Response createCollection(@PathParam("dbName") String dbName,
             com.mulesoft.mongo.to.request.Collection collection, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
@@ -262,8 +282,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response findCollection(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
@@ -292,8 +315,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     public Response updateCollection(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             com.mulesoft.mongo.to.request.Collection collection, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
 
@@ -333,8 +359,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response deleteCollection(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
@@ -364,8 +393,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response findCollections(@PathParam("dbName") String dbName, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
@@ -392,8 +424,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response deleteCollections(@PathParam("dbName") String dbName, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
@@ -419,13 +454,16 @@ public class MongoRestServiceImpl implements MongoRestService {
     }
 
     @POST
-    @Path("/databases/{dbName}/collections/{collName}")
+    @Path("/databases/{dbName}/collections/{collName}/indexes")
     @Override
     public Response createIndex(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             com.mulesoft.mongo.to.request.Index index, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
@@ -442,7 +480,12 @@ public class MongoRestServiceImpl implements MongoRestService {
                             }
                         }
                         dbCollection.ensureIndex(keysObject, index.getName(), index.isUnique());
-                        response = Response.ok(index).build();
+                        URI statusSubResource = uriInfo
+                                .getBaseUriBuilder()
+                                .path(MongoRestServiceImpl.class)
+                                .path("/databases/" + dbName + "/collections/" + collName + "/indexes/"
+                                        + index.getName()).build();
+                        response = Response.created(statusSubResource).build();
                     } else {
                         response = Response.status(ClientError.BAD_REQUEST.code())
                                 .entity("Cannot create an index with unspecified keys").build();
@@ -468,8 +511,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     public Response findIndex(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @PathParam("indexName") String indexName, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
@@ -481,12 +527,14 @@ public class MongoRestServiceImpl implements MongoRestService {
                     boolean indexFound = false;
                     com.mulesoft.mongo.to.response.Index foundIndex = new com.mulesoft.mongo.to.response.Index();
                     for (DBObject indexInfo : indexInfos) {
-                        Map<String, Object> indexed = (Map<String, Object>) indexInfo.get("name");
-                        if (indexed.keySet().contains(indexName)) {
+                        String foundIndexName = (String) indexInfo.get("name");
+                        if (foundIndexName.equals(indexName)) {
                             Map<String, Object> keys = (Map<String, Object>) indexInfo.get("key");
+                            foundIndex.setName(indexName);
                             foundIndex.setCollectionName(collName);
                             foundIndex.setDbName(dbName);
                             foundIndex.setKeys(keys.keySet());
+                            foundIndex.setUnique((Boolean) indexInfo.get("unique"));
                             indexFound = true;
                             break;
                         }
@@ -511,15 +559,17 @@ public class MongoRestServiceImpl implements MongoRestService {
         return response;
     }
 
-    @SuppressWarnings("unchecked")
     @DELETE
     @Path("/databases/{dbName}/collections/{collName}/indexes/{indexName}")
     @Override
     public Response deleteIndex(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @PathParam("indexName") String indexName, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext) {
-        Response response = Response.status(ServerError.RUNTIME_ERROR.code())
-                .entity(ServerError.RUNTIME_ERROR.message()).build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         try {
             Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
             String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
@@ -530,14 +580,11 @@ public class MongoRestServiceImpl implements MongoRestService {
                     List<DBObject> indexInfos = dbCollection.getIndexInfo();
                     boolean indexFound = false;
                     for (DBObject indexInfo : indexInfos) {
-                        Map<String, Object> indexed = (Map<String, Object>) indexInfo.get("key");
-                        if (indexed != null) {
-                            Set<String> indexedKeySet = indexed.keySet();
-                            if (indexedKeySet.contains(indexName)) {
-                                indexFound = true;
-                                dbCollection.dropIndex(indexName);
-                                break;
-                            }
+                        String foundIndexName = (String) indexInfo.get("name");
+                        if (foundIndexName.equals(indexName)) {
+                            indexFound = true;
+                            dbCollection.dropIndex(indexName);
+                            break;
                         }
                     }
                     if (indexFound) {
@@ -560,12 +607,52 @@ public class MongoRestServiceImpl implements MongoRestService {
         return response;
     }
 
+    @SuppressWarnings("unchecked")
     @GET
     @Path("/databases/{dbName}/collections/{collName}/indexes")
     @Override
     public Response findIndexes(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        return Response.ok().build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
+        try {
+            Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
+            String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
+            if (mongo.getDatabaseNames().contains(dbNamespace)) {
+                DB db = mongo.getDB(dbNamespace);
+                if (db.getCollectionNames().contains(collName)) {
+                    DBCollection dbCollection = db.getCollection(collName);
+                    List<com.mulesoft.mongo.to.response.Index> indexes = new ArrayList<com.mulesoft.mongo.to.response.Index>();
+                    for (DBObject indexInfo : dbCollection.getIndexInfo()) {
+                        String indexName = (String) indexInfo.get("name");
+                        if (FILTERED_INDEX.equals(indexName)) {
+                            continue;
+                        }
+                        com.mulesoft.mongo.to.response.Index index = new com.mulesoft.mongo.to.response.Index();
+                        index.setName(indexName);
+                        index.setCollectionName(collName);
+                        index.setDbName(dbName);
+                        index.setUnique((Boolean) indexInfo.get("unique"));
+                        Map<String, Object> keys = (Map<String, Object>) indexInfo.get("key");
+                        index.setKeys(keys.keySet());
+                        indexes.add(index);
+                    }
+                    response = Response.ok(indexes).build();
+                } else {
+                    response = Response.status(ClientError.NOT_FOUND.code())
+                            .entity(collName + " does not exist in " + dbName).build();
+                }
+            } else {
+                response = Response.status(ClientError.NOT_FOUND.code()).entity(dbName + " does not exist").build();
+            }
+        } catch (Exception exception) {
+            response = lobException(exception, headers, uriInfo);
+        }
+
+        return response;
     }
 
     @DELETE
@@ -573,7 +660,39 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response deleteIndexes(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
-        return Response.ok().build();
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
+        try {
+            Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
+            String dbNamespace = constructDbNamespace(credentials.getUserName(), dbName);
+            if (mongo.getDatabaseNames().contains(dbNamespace)) {
+                DB db = mongo.getDB(dbNamespace);
+                if (db.getCollectionNames().contains(collName)) {
+                    DBCollection dbCollection = db.getCollection(collName);
+                    List<DBObject> indexInfos = dbCollection.getIndexInfo();
+                    for (DBObject indexInfo : indexInfos) {
+                        String indexName = (String) indexInfo.get("name");
+                        if (FILTERED_INDEX.equals(indexName)) {
+                            continue;
+                        }
+                        dbCollection.dropIndex(indexName);
+                    }
+                    response = Response.ok().build();
+                } else {
+                    response = Response.status(ClientError.NOT_FOUND.code())
+                            .entity(collName + " does not exist in " + dbName).build();
+                }
+            } else {
+                response = Response.status(ClientError.NOT_FOUND.code()).entity(dbName + " does not exist").build();
+            }
+        } catch (Exception exception) {
+            response = lobException(exception, headers, uriInfo);
+        }
+
+        return response;
     }
 
     @POST
@@ -582,6 +701,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     public Response createDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             com.mulesoft.mongo.to.request.Document document, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext) {
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         return Response.ok().build();
     }
 
@@ -591,6 +715,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     public Response findDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @PathParam("docName") String docName, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext) {
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         return Response.ok().build();
     }
 
@@ -600,6 +729,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     public Response updateDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @PathParam("docName") String docName, com.mulesoft.mongo.to.request.Document document,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         return Response.ok().build();
     }
 
@@ -609,6 +743,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     public Response deleteDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @PathParam("docName") String docName, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext) {
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         return Response.ok().build();
     }
 
@@ -617,6 +756,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response findDocuments(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         return Response.ok().build();
     }
 
@@ -625,6 +769,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response deleteDocuments(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
         return Response.ok().build();
     }
 
@@ -633,7 +782,31 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Override
     public Response ping(@Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext) {
-        return Response.ok().build();
+        return !shutdown && mongo.getConnector().isOpen() ? Response.ok().build() : Response
+                .status(ServerError.SERVICE_UNAVAILABLE.code()).entity(ServerError.SERVICE_UNAVAILABLE.message())
+                .build();
+    }
+
+    // users should wire shiro to allow only privileged users to shutdown
+    @GET
+    @Path("/shutdown")
+    @Override
+    public Response shutdown(@Context HttpHeaders headers, @Context UriInfo uriInfo,
+            @Context SecurityContext securityContext) {
+        Response response = null;
+        if (!shutdown) {
+            shutdown = true;
+            if (mongo.getConnector().isOpen()) {
+                mongo.close();
+                response = Response.ok().build();
+            } else {
+                response = Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                        .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+            }
+        } else {
+            response = Response.notModified("Service is already shutdown.").build();
+        }
+        return response;
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -716,12 +889,12 @@ public class MongoRestServiceImpl implements MongoRestService {
             }
         } catch (Exception exception) {
             throw new AuthenticationException(
-                    "iON Alerts Service expects Base64 encoded Authorization header containing username and password",
+                    "Mongo Data Service expects Base64 encoded Authorization header containing username and password",
                     exception);
         }
         if (Utils.StringUtils.isNullOrEmpty(username) || Utils.StringUtils.isNullOrEmpty(password)) {
             throw new AuthenticationException(
-                    "iON Alerts Service expects Base64 encoded Authorization header containing username and password");
+                    "Mongo Data Service expects Base64 encoded Authorization header containing username and password");
         }
 
         String userIP = null;
@@ -757,11 +930,11 @@ public class MongoRestServiceImpl implements MongoRestService {
     private Response lobException(Exception exception, HttpHeaders headers, UriInfo uriInfo) {
         Response response = null;
         if (exception instanceof AuthenticationException || exception instanceof AuthorizationException) {
-            logError("alerts failed", exception, headers, uriInfo);
+            logError("mongo data service failed", exception, headers, uriInfo);
             response = Response.status(ClientError.UNAUTHORIZED.code()).entity(ClientError.UNAUTHORIZED.message())
                     .build();
         } else {
-            logError("alerts failed", exception, headers, uriInfo);
+            logError("mongo data service failed", exception, headers, uriInfo);
             response = Response.status(ServerError.RUNTIME_ERROR.code()).entity(ServerError.RUNTIME_ERROR.message())
                     .build();
         }
@@ -775,9 +948,6 @@ public class MongoRestServiceImpl implements MongoRestService {
     @Required
     public void setMongo(Mongo mongo) {
         this.mongo = mongo;
-    }
-
-    public Mongo getMongo() {
-        return mongo;
+        // BasicConfigurator.configure(); Testing only
     }
 }

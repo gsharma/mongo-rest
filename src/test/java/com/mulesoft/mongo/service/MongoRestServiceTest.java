@@ -37,7 +37,8 @@ public class MongoRestServiceTest {
     private Server server;
     private static final String testUsername = "admin";
     private static final String testPassword = "r3$tfuLM0ng0";
-    private String baseUri = "http://localhost:9002/api/mongo/databases";
+    private static final String baseUri = "http://localhost:9002/api/mongo";
+    private static final String baseDbUri = baseUri + "/databases";
     protected Client clientHandle;
 
     @BeforeClass
@@ -93,7 +94,7 @@ public class MongoRestServiceTest {
     public void testCreateDatabase() {
         com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
         db.setName("mongo-rest-test");
-        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
                 .post(ClientResponse.class, db);
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
     }
@@ -104,7 +105,7 @@ public class MongoRestServiceTest {
         String dbName = "mongo-rest-test";
         db.setName(dbName);
         db.setWriteConcern(com.mulesoft.mongo.to.request.WriteConcern.SAFE);
-        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
                 .post(ClientResponse.class, db);
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 
@@ -128,7 +129,7 @@ public class MongoRestServiceTest {
         com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
         String dbName = "mongo-rest-test";
         db.setName(dbName);
-        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
                 .post(ClientResponse.class, db);
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 
@@ -142,17 +143,18 @@ public class MongoRestServiceTest {
         com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
         String dbName1 = "mongo-rest-test1";
         db.setName(dbName1);
-        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
                 .post(ClientResponse.class, db);
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 
         db = new com.mulesoft.mongo.to.request.Database();
         String dbName2 = "mongo-rest-test2";
         db.setName(dbName2);
-        response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class, db);
+        response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 
-        List<com.mulesoft.mongo.to.response.Database> databases = clientHandle.resource(baseUri)
+        List<com.mulesoft.mongo.to.response.Database> databases = clientHandle.resource(baseDbUri)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .get(new GenericType<List<com.mulesoft.mongo.to.response.Database>>() {
                 });
@@ -172,26 +174,27 @@ public class MongoRestServiceTest {
         com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
         String dbName1 = "mongo-rest-test1";
         db.setName(dbName1);
-        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
                 .post(ClientResponse.class, db);
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 
         db = new com.mulesoft.mongo.to.request.Database();
         String dbName2 = "mongo-rest-test2";
         db.setName(dbName2);
-        response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class, db);
+        response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 
-        List<com.mulesoft.mongo.to.response.Database> databases = clientHandle.resource(baseUri)
+        List<com.mulesoft.mongo.to.response.Database> databases = clientHandle.resource(baseDbUri)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .get(new GenericType<List<com.mulesoft.mongo.to.response.Database>>() {
                 });
         assertEquals(2, databases.size());
 
-        response = clientHandle.resource(baseUri).delete(ClientResponse.class);
+        response = clientHandle.resource(baseDbUri).delete(ClientResponse.class);
         assertEquals(Status.OK.getStatusCode(), response.getStatus());
 
-        databases = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+        databases = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
                 .get(new GenericType<List<com.mulesoft.mongo.to.response.Database>>() {
                 });
         assertEquals(0, databases.size());
@@ -201,7 +204,7 @@ public class MongoRestServiceTest {
     public void testCreateCollection() {
         com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
         db.setName("mongo-rest-test");
-        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
                 .post(ClientResponse.class, db);
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 
@@ -234,7 +237,7 @@ public class MongoRestServiceTest {
         com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
         String dbName = "mongo-rest-test";
         db.setName(dbName);
-        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
                 .post(ClientResponse.class, db);
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 
@@ -259,7 +262,7 @@ public class MongoRestServiceTest {
         com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
         String dbName = "mongo-rest-test";
         db.setName(dbName);
-        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
                 .post(ClientResponse.class, db);
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 
@@ -298,7 +301,7 @@ public class MongoRestServiceTest {
         com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
         String dbName = "mongo-rest-test";
         db.setName(dbName);
-        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
                 .post(ClientResponse.class, db);
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 
@@ -323,7 +326,38 @@ public class MongoRestServiceTest {
 
     @Test
     public void testFindCollections() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection-1";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl1 = response.getLocation();
+        response = clientHandle.resource(collUrl1).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        collection = new com.mulesoft.mongo.to.request.Collection();
+        collName = "mongo-test-collection-2";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl2 = response.getLocation();
+        response = clientHandle.resource(collUrl2).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(dbUrl + "/collections").get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
     }
 
     @Test
@@ -331,7 +365,7 @@ public class MongoRestServiceTest {
         com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
         String dbName = "mongo-rest-test";
         db.setName(dbName);
-        ClientResponse response = clientHandle.resource(baseUri).type(MediaType.APPLICATION_JSON_TYPE)
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
                 .post(ClientResponse.class, db);
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 
@@ -369,27 +403,244 @@ public class MongoRestServiceTest {
 
     @Test
     public void testCreateIndex() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl = response.getLocation();
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        com.mulesoft.mongo.to.request.Index index = new com.mulesoft.mongo.to.request.Index();
+        index.setName("simple-index");
+        index.setUnique(true);
+        List<String> keys = new ArrayList<String>();
+        keys.add("name");
+        keys.add("age");
+        index.setKeys(keys);
+        response = clientHandle.resource(collUrl + "/indexes").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, index);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
     }
 
     @Test
     public void testFindIndex() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl = response.getLocation();
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        com.mulesoft.mongo.to.request.Index index1 = new com.mulesoft.mongo.to.request.Index();
+        index1.setName("stats-index");
+        index1.setUnique(true);
+        List<String> keys = new ArrayList<String>();
+        keys.add("name");
+        keys.add("age");
+        keys.add("height");
+        index1.setKeys(keys);
+        response = clientHandle.resource(collUrl + "/indexes").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, index1);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        URI index1Url = response.getLocation();
+
+        response = clientHandle.resource(index1Url).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        com.mulesoft.mongo.to.response.Index foundIndex = response
+                .getEntity(com.mulesoft.mongo.to.response.Index.class);
+        assertNotNull(foundIndex);
+        assertEquals(index1.getName(), foundIndex.getName());
+        for (String key : index1.getKeys()) {
+            assertTrue(foundIndex.getKeys().contains(key));
+        }
+        assertEquals(index1.isUnique(), foundIndex.isUnique());
     }
 
     @Test
     public void testDeleteIndex() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl = response.getLocation();
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        com.mulesoft.mongo.to.request.Index index = new com.mulesoft.mongo.to.request.Index();
+        index.setName("stats-index");
+        index.setUnique(true);
+        List<String> keys = new ArrayList<String>();
+        keys.add("name");
+        keys.add("age");
+        keys.add("height");
+        index.setKeys(keys);
+        response = clientHandle.resource(collUrl + "/indexes").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, index);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        URI indexUrl = response.getLocation();
+
+        response = clientHandle.resource(indexUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(indexUrl).delete(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(indexUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
     }
 
     @Test
     public void testFindIndexes() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl = response.getLocation();
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        com.mulesoft.mongo.to.request.Index index1 = new com.mulesoft.mongo.to.request.Index();
+        index1.setName("stats-index");
+        index1.setUnique(true);
+        List<String> keys = new ArrayList<String>();
+        keys.add("name");
+        keys.add("age");
+        keys.add("height");
+        index1.setKeys(keys);
+        response = clientHandle.resource(collUrl + "/indexes").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, index1);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        com.mulesoft.mongo.to.request.Index index2 = new com.mulesoft.mongo.to.request.Index();
+        index2.setName("location-index");
+        index2.setUnique(true);
+        keys = new ArrayList<String>();
+        keys.add("address");
+        keys.add("phone");
+        index2.setKeys(keys);
+        response = clientHandle.resource(collUrl + "/indexes").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, index2);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        List<com.mulesoft.mongo.to.request.Index> indexes = new ArrayList<com.mulesoft.mongo.to.request.Index>(2);
+        indexes.add(index1);
+        indexes.add(index2);
+
+        response = clientHandle.resource(collUrl + "/indexes").type(MediaType.APPLICATION_JSON_TYPE)
+                .get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        List<com.mulesoft.mongo.to.response.Index> foundIndexes = response
+                .getEntity(new GenericType<List<com.mulesoft.mongo.to.response.Index>>() {
+                });
+        assertEquals(2, foundIndexes.size());
+        for (com.mulesoft.mongo.to.response.Index foundIndex : foundIndexes) {
+            for (com.mulesoft.mongo.to.request.Index index : indexes) {
+                if (index.getName().equals(foundIndex.getName())) {
+                    for (String key : index.getKeys()) {
+                        assertTrue(foundIndex.getKeys().contains(key));
+                    }
+                    assertEquals(index.isUnique(), foundIndex.isUnique());
+                    assertEquals(dbName, foundIndex.getDbName());
+                    assertEquals(collName, foundIndex.getCollectionName());
+                }
+            }
+        }
     }
 
     @Test
     public void testDeleteIndexes() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl = response.getLocation();
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        com.mulesoft.mongo.to.request.Index index = new com.mulesoft.mongo.to.request.Index();
+        index.setName("stats-index");
+        index.setUnique(true);
+        List<String> keys = new ArrayList<String>();
+        keys.add("name");
+        keys.add("age");
+        keys.add("height");
+        index.setKeys(keys);
+        response = clientHandle.resource(collUrl + "/indexes").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, index);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        URI indexUrl = response.getLocation();
+
+        response = clientHandle.resource(indexUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(collUrl + "/indexes").delete(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(indexUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
+        response = clientHandle.resource(collUrl + "/indexes").type(MediaType.APPLICATION_JSON_TYPE)
+                .get(ClientResponse.class);
+        List<com.mulesoft.mongo.to.response.Index> foundIndexes = response
+                .getEntity(new GenericType<List<com.mulesoft.mongo.to.response.Index>>() {
+                });
+        assertEquals(0, foundIndexes.size());
     }
 
     @Test
@@ -424,6 +675,23 @@ public class MongoRestServiceTest {
 
     @Test
     public void testPing() {
-        assertTrue(true);
+        ClientResponse response = clientHandle.resource(baseUri + "/ping").type(MediaType.APPLICATION_JSON_TYPE)
+                .get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void testShutdown() {
+        ClientResponse response = clientHandle.resource(baseUri + "/ping").type(MediaType.APPLICATION_JSON_TYPE)
+                .get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(baseUri + "/shutdown").type(MediaType.APPLICATION_JSON_TYPE)
+                .get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(baseUri + "/ping").type(MediaType.APPLICATION_JSON_TYPE)
+                .get(ClientResponse.class);
+        assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
     }
 }
