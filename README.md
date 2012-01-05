@@ -263,45 +263,73 @@ Example Response:
 
 ### 18. Create a document (POST host:port/api/mongo/databases/*dbName*/collections/*collName*/documents)
 Example Request:  
-	
+	POST http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/documents  
+	Content-Type: application/json  
+	{"json":"{ \"state\" : \"california\" , \"tempMap\" : { \"december\" : \"45\" , \"january\" : \"50\"} , \"city\" : \"san francisco\"}"}  
 
 Example Response:  
-	
+	201  
+	Content-Length: 0
+	Location: http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/documents/4f056f2b30041f7b09baac05  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
 
 ### 19. Retrieve a document (GET host:port/api/mongo/databases/*dbName*/collections/*collName*/documents/*docId*)
 Example Request:  
-	
+	GET http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/documents/4f056f843004d8fcde78a893  
+	Content-Type: application/json  
 
 Example Response:  
-	
+	200  
+	Transfer-Encoding: chunked  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	{"json":"{ \"_id\" : { \"$oid\" : \"4f056f843004d8fcde78a893\"} , \"state\" : \"california\" , \"tempMap\" : { \"december\" : \"45\" , \"january\" : \"50\"} , \"city\" : \"san francisco\"}","locationUri":null}
 
 ### 20. Update a document (PUT host:port/api/mongo/databases/*dbName*/collections/*collName*/documents/*docId*)
 Example Request:  
-	
+	PUT http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/documents/4f056fe4300467ed3870bd69  
+	Content-Type: application/json  
+	{"json":"{ \"_id\" : { \"$oid\" : \"4f056fe4300467ed3870bd69\"} , \"state\" : \"california\" , \"tempMap\" : { \"december\" : \"45\" , \"january\" : \"50\"} , \"city\" : \"fresno\"}"}  
 
 Example Response:  
-	
+	200  
+	Transfer-Encoding: chunked  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	"http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/documents/4f056fe4300467ed3870bd69"  
 
 ### 21. Delete a document (DELETE host:port/api/mongo/databases/*dbName*/collections/*collName*/documents/*docId*)
 Example Request:  
-	
+	DELETE http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/documents/4f0570703004fcc3f0d6f072  
 
 Example Response:  
-	
+	200  
+	Content-Length: 0  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
 
 ### 22. Retrieve all documents (GET host:port/api/mongo/databases/*dbName*/collections/*collName*/documents)
 Example Request:  
-	
+	GET http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/documents  
+	Content-Type: application/json  
 
 Example Response:  
-	
+	200  
+	Transfer-Encoding: chunked  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
+	[{"json":"{ \"_id\" : { \"$oid\" : \"4f0570ac3004ac6382ea93a3\"} , \"state\" : \"california\" , \"tempMap\" : { \"december\" : \"45\" , \"january\" : \"50\"} , \"city\" : \"san francisco\"}","locationUri":null}]
 
 ### 23. Delete all documents (DELETE host:port/api/mongo/databases/*dbName*/collections/*collName*/documents)
 Example Request:  
-	
+	DELETE http://localhost:9002/api/mongo/databases/mongo-rest-test/collections/mongo-test-collection/documents  
 
 Example Response:  
-	
+	200  
+	Content-Length: 0  
+	Content-Type: application/json  
+	Server: Jetty(6.1.26)  
 
 ### 24. Ping Service (GET host:port/api/mongo/ping)
 Example Request:  
