@@ -281,8 +281,8 @@
             <configuration>
               <classifier>client</classifier>
               <includes>
-                <include>**/com/mulesoft/mongo/client/*</include>
-                <include>**/com/mulesoft/mongo/to/**</include>
+                <include>**/com/github/mongorest/client/*</include>
+                <include>**/com/github/mongorest/to/**</include>
               </includes>
             </configuration>
           </plugin>
