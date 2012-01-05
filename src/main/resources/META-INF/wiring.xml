@@ -7,12 +7,12 @@
            http://www.springframework.org/schema/context/spring-context-3.1.xsd 
            http://www.springframework.org/schema/util 
            http://www.springframework.org/schema/util/spring-util-3.1.xsd">
-  <context:component-scan base-package="com.mulesoft.mongo" />
+  <context:component-scan base-package="com.github.mongorest" />
 
   <bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"
     scope="singleton" />
 
-  <bean id="mongo" class="com.mulesoft.mongo.util.MongoFactoryBean">
+  <bean id="mongo" class="com.github.mongorest.util.MongoFactoryBean">
     <property name="configuration" ref="configuration" />
     <!--<property name="multiAddress">
       <list>
@@ -39,7 +39,7 @@
     </property>
   </bean>
 
-  <bean id="configuration" class="com.mulesoft.mongo.util.Configuration"
+  <bean id="configuration" class="com.github.mongorest.util.Configuration"
     scope="singleton">
     <property name="startupBreather" value="${startup.breather}" />
     <property name="dataStoreName" value="${db.name}" />
@@ -58,15 +58,15 @@
     </property>
   </bean>
 
-  <bean id="securityManager" class="com.mulesoft.mongo.security.SecurityManager">
+  <bean id="securityManager" class="com.github.mongorest.security.SecurityManager">
     <property name="realm" ref="realm" />
   </bean>
 
-  <bean id="realm" class="com.mulesoft.mongo.security.Realm">
+  <bean id="realm" class="com.github.mongorest.security.Realm">
     <property name="cryptDe" ref="cryptDe" />
   </bean>
 
-  <bean id="cryptDe" class="com.mulesoft.mongo.security.MongoBase64CryptDe">
+  <bean id="cryptDe" class="com.github.mongorest.security.MongoBase64CryptDe">
     <property name="mongo" ref="mongo" />
   </bean>
 
@@ -79,7 +79,7 @@
     <property name="arguments" ref="securityManager" />
   </bean>
 
-  <bean id="mongoService" class="com.mulesoft.mongo.service.MongoRestServiceImpl"
+  <bean id="mongoService" class="com.github.mongorest.service.MongoRestServiceImpl"
     init-method="init">
     <property name="mongo" ref="mongo" />
     <property name="configuration" ref="configuration" />
