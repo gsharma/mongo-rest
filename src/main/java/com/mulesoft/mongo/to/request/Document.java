@@ -1,8 +1,8 @@
 package com.mulesoft.mongo.to.request;
 
 public class Document {
+    private String docId;
     private String json;
-    private String name;
 
     public String getJson() {
         return json;
@@ -12,18 +12,18 @@ public class Document {
         this.json = json;
     }
 
-    public String getName() {
-        return name;
+    public String getDocId() {
+        return docId;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setDocId(String docId) {
+        this.docId = docId;
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("Document [json=").append(json).append("]");
+        builder.append("Document [docId=").append(docId).append(", json=").append(json).append("]");
         return builder.toString();
     }
 }

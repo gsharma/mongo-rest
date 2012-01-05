@@ -24,6 +24,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -35,7 +36,9 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mongodb.MongoException;
+import com.mongodb.MongoException.DuplicateKey;
 import com.mongodb.WriteConcern;
+import com.mongodb.util.JSON;
 import com.mulesoft.mongo.exception.AuthenticationException;
 import com.mulesoft.mongo.exception.AuthorizationException;
 import com.mulesoft.mongo.security.Credentials;
@@ -61,7 +64,6 @@ public class MongoRestServiceImpl implements MongoRestService {
     private static final String STATS_COUNT_KEY = "count";
     private static final String SYS_INDEXES_COLLECTION = "system.indexes";
     private static final String FILTERED_INDEX = "_id_";
-    private static final int COLLECTION_DOC_CAP = 10000;
     private volatile boolean shutdown;
     private Configuration configuration;
     private Mongo mongo;
@@ -302,7 +304,7 @@ public class MongoRestServiceImpl implements MongoRestService {
                 DB db = mongo.getDB(dbNamespace);
                 authServiceAgainstMongo(db);
                 DBObject options = new BasicDBObject();
-                options.put("max", COLLECTION_DOC_CAP);
+                options.put("max", configuration.getMaxDocsPerCollection());
                 DBCollection dbCollection = db.createCollection(collection.getName(), options);
                 if (collection.getWriteConcern() != null) {
                     dbCollection.setWriteConcern(collection.getWriteConcern().getMongoWriteConcern());
@@ -391,7 +393,7 @@ public class MongoRestServiceImpl implements MongoRestService {
                     response = Response.ok(statusSubResource).build();
                 } else {
                     DBObject options = new BasicDBObject();
-                    options.put("max", COLLECTION_DOC_CAP);
+                    options.put("max", configuration.getMaxDocsPerCollection());
                     dbCollection = db.createCollection(collection.getName(), options);
                     if (collection.getWriteConcern() != null) {
                         dbCollection.setWriteConcern(collection.getWriteConcern().getMongoWriteConcern());
@@ -469,7 +471,7 @@ public class MongoRestServiceImpl implements MongoRestService {
                 authServiceAgainstMongo(db);
                 List<com.mulesoft.mongo.to.response.Collection> collections = new ArrayList<com.mulesoft.mongo.to.response.Collection>();
                 for (String collName : db.getCollectionNames()) {
-                    if (SYS_INDEXES_COLLECTION.equals(collName)) {
+                    if (SYS_INDEXES_COLLECTION.equals(collName) || STATS_USER_COLLECTION.equals(collName)) {
                         continue;
                     }
                     com.mulesoft.mongo.to.response.Collection collection = searchCollection(collName, dbName, db);
@@ -820,7 +822,31 @@ public class MongoRestServiceImpl implements MongoRestService {
                 authServiceAgainstMongo(db);
                 if (db.getCollectionNames().contains(collName)) {
                     DBCollection dbCollection = db.getCollection(collName);
-                    // TODO
+                    String documentJson = document.getJson();
+                    if (!StringUtils.isNullOrEmpty(documentJson)) {
+                        DBObject mongoDocument = (DBObject) JSON.parse(document.getJson());
+                        try {
+                            dbCollection.insert(mongoDocument, WriteConcern.SAFE);
+                            ObjectId documentId = ((ObjectId) mongoDocument.get("_id"));
+                            if (documentId != null && !StringUtils.isNullOrEmpty(documentId.toString())) {
+                                URI statusSubResource = uriInfo
+                                        .getBaseUriBuilder()
+                                        .path(MongoRestServiceImpl.class)
+                                        .path("/databases/" + dbName + "/collections/" + collName + "/documents/"
+                                                + documentId).build();
+                                response = Response.created(statusSubResource).build();
+                            } else {
+                                response = Response.status(ServerError.RUNTIME_ERROR.code())
+                                        .entity(ServerError.RUNTIME_ERROR.message()).build();
+                            }
+                        } catch (DuplicateKey duplicateObject) {
+                            response = Response.status(ClientError.BAD_REQUEST.code())
+                                    .entity("Document already exists and could not be created").build();
+                        }
+                    } else {
+                        response = Response.status(ClientError.BAD_REQUEST.code()).entity("Document JSON is required")
+                                .build();
+                    }
                 } else {
                     response = Response.status(ClientError.NOT_FOUND.code())
                             .entity(collName + " does not exist in " + dbName).build();
@@ -837,10 +863,10 @@ public class MongoRestServiceImpl implements MongoRestService {
     }
 
     @GET
-    @Path("/databases/{dbName}/collections/{collName}/documents/{docName}")
+    @Path("/databases/{dbName}/collections/{collName}/documents/{docId}")
     @Override
     public Response findDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
-            @PathParam("docName") String docName, @Context HttpHeaders headers, @Context UriInfo uriInfo,
+            @PathParam("docId") String docId, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext) {
         if (shutdown) {
             return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
@@ -857,7 +883,17 @@ public class MongoRestServiceImpl implements MongoRestService {
                 authServiceAgainstMongo(db);
                 if (db.getCollectionNames().contains(collName)) {
                     DBCollection dbCollection = db.getCollection(collName);
-                    // TODO
+                    DBObject query = new BasicDBObject();
+                    query.put("_id", new ObjectId(docId));
+                    DBObject found = dbCollection.findOne(query);
+                    if (found != null) {
+                        com.mulesoft.mongo.to.response.Document document = new com.mulesoft.mongo.to.response.Document();
+                        document.setJson(JSON.serialize(found));
+                        response = Response.ok(document).build();
+                    } else {
+                        response = Response.status(ClientError.NOT_FOUND.code())
+                                .entity(docId + " does not exist in " + collName).build();
+                    }
                 } else {
                     response = Response.status(ClientError.NOT_FOUND.code())
                             .entity(collName + " does not exist in " + dbName).build();
@@ -874,10 +910,10 @@ public class MongoRestServiceImpl implements MongoRestService {
     }
 
     @PUT
-    @Path("/databases/{dbName}/collections/{collName}/documents/{docName}")
+    @Path("/databases/{dbName}/collections/{collName}/documents/{docId}")
     @Override
     public Response updateDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
-            @PathParam("docName") String docName, com.mulesoft.mongo.to.request.Document document,
+            @PathParam("docId") String docId, com.mulesoft.mongo.to.request.Document document,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
         if (shutdown) {
             return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
@@ -894,7 +930,39 @@ public class MongoRestServiceImpl implements MongoRestService {
                 authServiceAgainstMongo(db);
                 if (db.getCollectionNames().contains(collName)) {
                     DBCollection dbCollection = db.getCollection(collName);
-                    // TODO
+                    String documentJson = document.getJson();
+                    if (!StringUtils.isNullOrEmpty(documentJson)) {
+                        DBObject incomingDocument = (DBObject) JSON.parse(documentJson);
+                        DBObject query = new BasicDBObject();
+                        query.put("_id", new ObjectId(docId));
+                        DBObject persistedDocument = dbCollection.findOne(query);
+                        URI statusSubResource = null;
+                        try {
+                            if (persistedDocument == null) {
+                                dbCollection.insert(incomingDocument, WriteConcern.SAFE);
+                                statusSubResource = uriInfo
+                                        .getBaseUriBuilder()
+                                        .path(MongoRestServiceImpl.class)
+                                        .path("/databases/" + dbName + "/collections/" + collName + "/documents/"
+                                                + ((DBObject) incomingDocument.get("_id"))).build();
+                                response = Response.created(statusSubResource).build();
+                            } else {
+                                dbCollection.save(incomingDocument);
+                                statusSubResource = uriInfo
+                                        .getBaseUriBuilder()
+                                        .path(MongoRestServiceImpl.class)
+                                        .path("/databases/" + dbName + "/collections/" + collName + "/documents/"
+                                                + docId).build();
+                                response = Response.ok(statusSubResource).build();
+                            }
+                        } catch (DuplicateKey duplicateObject) {
+                            response = Response.status(ClientError.BAD_REQUEST.code())
+                                    .entity("Document already exists and could not be created").build();
+                        }
+                    } else {
+                        response = Response.status(ClientError.BAD_REQUEST.code()).entity("Document JSON is required")
+                                .build();
+                    }
                 } else {
                     response = Response.status(ClientError.NOT_FOUND.code())
                             .entity(collName + " does not exist in " + dbName).build();
@@ -911,10 +979,10 @@ public class MongoRestServiceImpl implements MongoRestService {
     }
 
     @DELETE
-    @Path("/databases/{dbName}/collections/{collName}/documents/{docName}")
+    @Path("/databases/{dbName}/collections/{collName}/documents/{docId}")
     @Override
     public Response deleteDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
-            @PathParam("docName") String docName, @Context HttpHeaders headers, @Context UriInfo uriInfo,
+            @PathParam("docId") String docId, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext) {
         if (shutdown) {
             return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
@@ -931,7 +999,12 @@ public class MongoRestServiceImpl implements MongoRestService {
                 authServiceAgainstMongo(db);
                 if (db.getCollectionNames().contains(collName)) {
                     DBCollection dbCollection = db.getCollection(collName);
-                    // TODO
+                    if (!StringUtils.isNullOrEmpty(docId)) {
+                        DBObject query = new BasicDBObject();
+                        query.put("_id", new ObjectId(docId));
+                        dbCollection.remove(query);
+                        response = Response.ok().build();
+                    }
                 } else {
                     response = Response.status(ClientError.NOT_FOUND.code())
                             .entity(collName + " does not exist in " + dbName).build();
@@ -965,9 +1038,19 @@ public class MongoRestServiceImpl implements MongoRestService {
             if (mongo.getDatabaseNames().contains(dbNamespace)) {
                 DB db = mongo.getDB(dbNamespace);
                 authServiceAgainstMongo(db);
+                List<com.mulesoft.mongo.to.response.Document> documents = new ArrayList<com.mulesoft.mongo.to.response.Document>();
                 if (db.getCollectionNames().contains(collName)) {
                     DBCollection dbCollection = db.getCollection(collName);
-                    // TODO
+                    DBCursor cursor = dbCollection.find();
+                    while (cursor.hasNext()) {
+                        DBObject found = cursor.next();
+                        if (found != null) {
+                            com.mulesoft.mongo.to.response.Document document = new com.mulesoft.mongo.to.response.Document();
+                            document.setJson(JSON.serialize(found));
+                            documents.add(document);
+                        }
+                    }
+                    response = Response.ok(documents).build();
                 } else {
                     response = Response.status(ClientError.NOT_FOUND.code())
                             .entity(collName + " does not exist in " + dbName).build();
@@ -1003,7 +1086,14 @@ public class MongoRestServiceImpl implements MongoRestService {
                 authServiceAgainstMongo(db);
                 if (db.getCollectionNames().contains(collName)) {
                     DBCollection dbCollection = db.getCollection(collName);
-                    // TODO
+                    DBCursor cursor = dbCollection.find();
+                    while (cursor.hasNext()) {
+                        DBObject found = cursor.next();
+                        if (found != null) {
+                            dbCollection.remove(found);
+                        }
+                    }
+                    response = Response.ok().build();
                 } else {
                     response = Response.status(ClientError.NOT_FOUND.code())
                             .entity(collName + " does not exist in " + dbName).build();

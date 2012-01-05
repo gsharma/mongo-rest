@@ -256,9 +256,9 @@ public class MongoRestServiceProxyImpl implements MongoRestServiceProxy {
     }
 
     @Override
-    public com.mulesoft.mongo.to.response.Document findDocument(String dbName, String collName, String documentName) {
+    public com.mulesoft.mongo.to.response.Document findDocument(String dbName, String collName, String docId) {
         Client clientHandle = MongoServiceConnection.getClientHandle(serviceUser, servicePassword, 0, 0);
-        String uri = serviceUri + "/databases/" + dbName + "/collections/" + collName + "/documents/" + documentName;
+        String uri = serviceUri + "/databases/" + dbName + "/collections/" + collName + "/documents/" + docId;
         ClientResponse response = clientHandle.resource(uri).type(MediaType.APPLICATION_JSON_TYPE)
                 .get(ClientResponse.class);
         com.mulesoft.mongo.to.response.Document document = null;
@@ -274,8 +274,9 @@ public class MongoRestServiceProxyImpl implements MongoRestServiceProxy {
     public com.mulesoft.mongo.to.response.Document updateDocument(String dbName, String collName,
             com.mulesoft.mongo.to.request.Document document) {
         Client clientHandle = MongoServiceConnection.getClientHandle(serviceUser, servicePassword, 0, 0);
+
         String uri = serviceUri + "/databases/" + dbName + "/collections/" + collName + "/documents/"
-                + document.getName();
+                + document.getDocId();
         ClientResponse response = clientHandle.resource(uri).type(MediaType.APPLICATION_JSON_TYPE)
                 .put(ClientResponse.class, document);
         com.mulesoft.mongo.to.response.Document updatedDocument = null;
@@ -288,9 +289,9 @@ public class MongoRestServiceProxyImpl implements MongoRestServiceProxy {
     }
 
     @Override
-    public boolean deleteDocument(String dbName, String collName, String documentName) {
+    public boolean deleteDocument(String dbName, String collName, String docId) {
         Client clientHandle = MongoServiceConnection.getClientHandle(serviceUser, servicePassword, 0, 0);
-        String uri = serviceUri + "/databases/" + dbName + "/collections/" + collName + "/documents/" + documentName;
+        String uri = serviceUri + "/databases/" + dbName + "/collections/" + collName + "/documents/" + docId;
         ClientResponse response = clientHandle.resource(uri).delete(ClientResponse.class);
         boolean deleted = response.getStatus() == Status.OK.getStatusCode();
         if (!deleted) {

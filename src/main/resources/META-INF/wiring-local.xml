@@ -16,6 +16,13 @@
 
   <bean id="mongo" class="com.mulesoft.mongo.util.MongoFactoryBean">
     <property name="configuration" ref="configuration" />
+    <!--<property name="multiAddress">
+      <list>
+        <value>${mongo.host.1}</value>
+        <value>${mongo.host.2}</value>
+        <value>${mongo.host.3}</value>
+      </list>
+    </property>-->
   </bean>
 
   <bean
@@ -29,7 +36,7 @@
         db.user=
         db.password=
         datastore.replicas=127.0.0.1
-        mongo.master.host=127.0.0.1
+        maxDocsPerCollection=10000
       </value>
     </property>
   </bean>
@@ -41,6 +48,7 @@
     <property name="dataStoreReplicas" value="${datastore.replicas}" />
     <property name="dataStoreUsername" value="${db.user}" />
     <property name="dataStorePassword" value="${db.password}" />
+    <property name="maxDocsPerCollection" value="${maxDocsPerCollection}" />
   </bean>
 
   <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">

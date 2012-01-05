@@ -6,6 +6,7 @@ public class Configuration {
     private String dataStoreUsername;
     private String dataStorePassword;
     private long startupBreather;
+    private int maxDocsPerCollection;
 
     public Configuration() {
     }
@@ -50,13 +51,21 @@ public class Configuration {
         this.startupBreather = startupBreather;
     }
 
+    public int getMaxDocsPerCollection() {
+        return maxDocsPerCollection;
+    }
+
+    public void setMaxDocsPerCollection(int maxDocsPerCollection) {
+        this.maxDocsPerCollection = maxDocsPerCollection;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("Configuration [dataStoreName=").append(dataStoreName).append(", dataStoreReplicas=")
                 .append(dataStoreReplicas).append(", dataStoreUsername=").append(dataStoreUsername)
                 .append(", dataStorePassword=").append(dataStorePassword).append(", startupBreather=")
-                .append(startupBreather).append("]");
+                .append(startupBreather).append(", maxDocsPerCollection=").append(maxDocsPerCollection).append("]");
         return builder.toString();
     }
 }

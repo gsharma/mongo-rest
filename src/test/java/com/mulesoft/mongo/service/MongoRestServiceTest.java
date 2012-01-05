@@ -5,11 +5,14 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -28,6 +31,7 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
+import com.mongodb.util.JSON;
 import com.mulesoft.mongo.util.AppContext;
 import com.mulesoft.mongo.util.ResourceClientFactory;
 import com.mulesoft.mongo.util.Utils.EncodingUtils;
@@ -394,9 +398,11 @@ public class MongoRestServiceTest {
         response = clientHandle.resource(collUrl2).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
         assertEquals(Status.OK.getStatusCode(), response.getStatus());
 
-        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
-                .get(ClientResponse.class);
-        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        List<com.mulesoft.mongo.to.response.Collection> collections = clientHandle.resource(dbUrl + "/collections")
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get(new GenericType<List<com.mulesoft.mongo.to.response.Collection>>() {
+                });
+        assertEquals(2, collections.size());
     }
 
     @Test
@@ -684,32 +690,361 @@ public class MongoRestServiceTest {
 
     @Test
     public void testCreateDocument() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl = response.getLocation();
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        Map<String, Object> objMap = new HashMap<String, Object>();
+        String fKey = "city";
+        String fValue = "san francisco";
+        objMap.put(fKey, fValue);
+        String sKey = "state";
+        String sValue = "california";
+        objMap.put(sKey, sValue);
+        Map<String, String> tempMap = new HashMap<String, String>();
+        String jKey = "january";
+        String jTemp = "50";
+        tempMap.put(jKey, jTemp);
+        String dKey = "december";
+        String dTemp = "45";
+        tempMap.put(dKey, dTemp);
+        String tempMapKey = "tempMap";
+        objMap.put(tempMapKey, tempMap);
+        String json = JSON.serialize(objMap);
+        com.mulesoft.mongo.to.request.Document document = new com.mulesoft.mongo.to.request.Document();
+        document.setJson(json);
+
+        response = clientHandle.resource(collUrl + "/documents").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, document);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
     }
 
     @Test
     public void testFindDocument() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl = response.getLocation();
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        Map<String, Object> objMap = new HashMap<String, Object>();
+        String fKey = "city";
+        String fValue = "san francisco";
+        objMap.put(fKey, fValue);
+        String sKey = "state";
+        String sValue = "california";
+        objMap.put(sKey, sValue);
+        Map<String, String> tempMap = new HashMap<String, String>();
+        String jKey = "january";
+        String jTemp = "50";
+        tempMap.put(jKey, jTemp);
+        String dKey = "december";
+        String dTemp = "45";
+        tempMap.put(dKey, dTemp);
+        String tempMapKey = "tempMap";
+        objMap.put(tempMapKey, tempMap);
+        String json = JSON.serialize(objMap);
+        com.mulesoft.mongo.to.request.Document document = new com.mulesoft.mongo.to.request.Document();
+        document.setJson(json);
+
+        response = clientHandle.resource(collUrl + "/documents").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, document);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(response.getLocation()).type(MediaType.APPLICATION_JSON_TYPE)
+                .get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        com.mulesoft.mongo.to.response.Document insertedDocument = response
+                .getEntity(com.mulesoft.mongo.to.response.Document.class);
+        BasicDBObject foundJson = (BasicDBObject) JSON.parse(insertedDocument.getJson());
+        @SuppressWarnings("rawtypes")
+        Map foundMap = foundJson.toMap();
+        for (String key : objMap.keySet()) {
+            assertTrue(foundMap.containsKey(key));
+            assertEquals(objMap.get(key), foundMap.get(key));
+        }
+        assertNotNull(foundMap.get("_id"));
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
     public void testUpdateDocument() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl = response.getLocation();
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        Map<String, Object> objMap = new HashMap<String, Object>();
+        String fKey = "city";
+        String fValue = "san francisco";
+        objMap.put(fKey, fValue);
+        String sKey = "state";
+        String sValue = "california";
+        objMap.put(sKey, sValue);
+        Map<String, String> tempMap = new HashMap<String, String>();
+        String jKey = "january";
+        String jTemp = "50";
+        tempMap.put(jKey, jTemp);
+        String dKey = "december";
+        String dTemp = "45";
+        tempMap.put(dKey, dTemp);
+        String tempMapKey = "tempMap";
+        objMap.put(tempMapKey, tempMap);
+        String json = JSON.serialize(objMap);
+        com.mulesoft.mongo.to.request.Document document = new com.mulesoft.mongo.to.request.Document();
+        document.setJson(json);
+
+        response = clientHandle.resource(collUrl + "/documents").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, document);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        URI docUrl = response.getLocation();
+
+        response = clientHandle.resource(docUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        com.mulesoft.mongo.to.response.Document insertedDocument = response
+                .getEntity(com.mulesoft.mongo.to.response.Document.class);
+
+        BasicDBObject insertedJson = (BasicDBObject) JSON.parse(insertedDocument.getJson());
+        Map insertedMap = insertedJson.toMap();
+        for (String key : objMap.keySet()) {
+            assertTrue(insertedMap.containsKey(key));
+            assertEquals(objMap.get(key), insertedMap.get(key));
+        }
+        ObjectId docId = (ObjectId) insertedMap.get("_id");
+        assertNotNull(docId);
+
+        fKey = "city";
+        fValue = "fresno";
+        insertedMap.put(fKey, fValue);
+        document.setJson(JSON.serialize(insertedMap));
+
+        response = clientHandle.resource(docUrl).type(MediaType.APPLICATION_JSON_TYPE)
+                .put(ClientResponse.class, document);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(docUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        com.mulesoft.mongo.to.response.Document updatedDocument = response
+                .getEntity(com.mulesoft.mongo.to.response.Document.class);
+
+        BasicDBObject updatedJson = (BasicDBObject) JSON.parse(updatedDocument.getJson());
+        Map updatedMap = updatedJson.toMap();
+        for (Object key : insertedMap.keySet()) {
+            if (key.equals("_id")) {
+                continue;
+            }
+            assertTrue(updatedMap.containsKey(key));
+            assertEquals(insertedMap.get(key), updatedMap.get(key));
+        }
+        assertEquals(docId, (ObjectId) updatedMap.get("_id"));
     }
 
     @Test
     public void testDeleteDocument() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl = response.getLocation();
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        Map<String, Object> objMap = new HashMap<String, Object>();
+        String fKey = "city";
+        String fValue = "san francisco";
+        objMap.put(fKey, fValue);
+        String sKey = "state";
+        String sValue = "california";
+        objMap.put(sKey, sValue);
+        Map<String, String> tempMap = new HashMap<String, String>();
+        String jKey = "january";
+        String jTemp = "50";
+        tempMap.put(jKey, jTemp);
+        String dKey = "december";
+        String dTemp = "45";
+        tempMap.put(dKey, dTemp);
+        String tempMapKey = "tempMap";
+        objMap.put(tempMapKey, tempMap);
+        String json = JSON.serialize(objMap);
+        com.mulesoft.mongo.to.request.Document document = new com.mulesoft.mongo.to.request.Document();
+        document.setJson(json);
+
+        response = clientHandle.resource(collUrl + "/documents").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, document);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        URI docUrl = response.getLocation();
+
+        response = clientHandle.resource(docUrl).delete(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(docUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
     }
 
     @Test
     public void testFindDocuments() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl = response.getLocation();
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        Map<String, Object> objMap = new HashMap<String, Object>();
+        String fKey = "city";
+        String fValue = "san francisco";
+        objMap.put(fKey, fValue);
+        String sKey = "state";
+        String sValue = "california";
+        objMap.put(sKey, sValue);
+        Map<String, String> tempMap = new HashMap<String, String>();
+        String jKey = "january";
+        String jTemp = "50";
+        tempMap.put(jKey, jTemp);
+        String dKey = "december";
+        String dTemp = "45";
+        tempMap.put(dKey, dTemp);
+        String tempMapKey = "tempMap";
+        objMap.put(tempMapKey, tempMap);
+        String json = JSON.serialize(objMap);
+        com.mulesoft.mongo.to.request.Document document = new com.mulesoft.mongo.to.request.Document();
+        document.setJson(json);
+
+        response = clientHandle.resource(collUrl + "/documents").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, document);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        List<com.mulesoft.mongo.to.response.Document> foundDocuments = clientHandle.resource(collUrl + "/documents")
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get(new GenericType<List<com.mulesoft.mongo.to.response.Document>>() {
+                });
+        assertEquals(1, foundDocuments.size());
+        BasicDBObject foundJson = (BasicDBObject) JSON.parse(foundDocuments.get(0).getJson());
+        @SuppressWarnings("rawtypes")
+        Map foundMap = foundJson.toMap();
+        for (String key : objMap.keySet()) {
+            assertTrue(foundMap.containsKey(key));
+            assertEquals(objMap.get(key), foundMap.get(key));
+        }
+        assertNotNull(foundMap.get("_id"));
     }
 
     @Test
     public void testDeleteDocuments() {
-        assertTrue(true);
+        com.mulesoft.mongo.to.request.Database db = new com.mulesoft.mongo.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.mulesoft.mongo.to.request.Collection collection = new com.mulesoft.mongo.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl = response.getLocation();
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        Map<String, Object> objMap = new HashMap<String, Object>();
+        String fKey = "city";
+        String fValue = "san francisco";
+        objMap.put(fKey, fValue);
+        String sKey = "state";
+        String sValue = "california";
+        objMap.put(sKey, sValue);
+        Map<String, String> tempMap = new HashMap<String, String>();
+        String jKey = "january";
+        String jTemp = "50";
+        tempMap.put(jKey, jTemp);
+        String dKey = "december";
+        String dTemp = "45";
+        tempMap.put(dKey, dTemp);
+        String tempMapKey = "tempMap";
+        objMap.put(tempMapKey, tempMap);
+        String json = JSON.serialize(objMap);
+        com.mulesoft.mongo.to.request.Document document = new com.mulesoft.mongo.to.request.Document();
+        document.setJson(json);
+
+        response = clientHandle.resource(collUrl + "/documents").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, document);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        URI docUrl = response.getLocation();
+
+        response = clientHandle.resource(collUrl + "/documents").delete(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        response = clientHandle.resource(docUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
     }
 
     @Test

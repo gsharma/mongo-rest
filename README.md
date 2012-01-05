@@ -1,7 +1,7 @@
 # Mongo REST Data Service
 
 ## Overview
-The Mongo Data Service is a RESTful data service intended for use in a distributed environment such as a large scale tiered services setup where the data tier can and often needs to be scaled out independent of the other services relying on the tier. A commonly used public cloud configuration is a multi-region multi-availability-zone AWS EC2 environment with the Mongo data tier secured by a VPN like AWS VPC or OpenSwan and RESTful data service access over HTTPS from a desktop or mobile client device on a public or a private network.  
+The Mongo Data Service is a RESTful data service intended for use in a distributed environment such as a large scale tiered services setup where the data tier can and often needs to be scaled out independently of the other services relying on the tier. A commonly used public cloud configuration is a multi-region multi-availability-zone AWS EC2 environment with the Mongo data tier secured by a VPN like AWS VPC or OpenSwan and RESTful data service access over HTTPS from a desktop or mobile client device on a public or a private network.  
 
 
 ## User Authentication
@@ -268,21 +268,21 @@ Example Request:
 Example Response:  
 	
 
-### 19. Retrieve a document (GET host:port/api/mongo/databases/*dbName*/collections/*collName*/documents/*docName*)
+### 19. Retrieve a document (GET host:port/api/mongo/databases/*dbName*/collections/*collName*/documents/*docId*)
 Example Request:  
 	
 
 Example Response:  
 	
 
-### 20. Update a document (PUT host:port/api/mongo/databases/*dbName*/collections/*collName*/documents/*docName*)
+### 20. Update a document (PUT host:port/api/mongo/databases/*dbName*/collections/*collName*/documents/*docId*)
 Example Request:  
 	
 
 Example Response:  
 	
 
-### 21. Delete a document (DELETE host:port/api/mongo/databases/*dbName*/collections/*collName*/documents/*docName*)
+### 21. Delete a document (DELETE host:port/api/mongo/databases/*dbName*/collections/*collName*/documents/*docId*)
 Example Request:  
 	
 

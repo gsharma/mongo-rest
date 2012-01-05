@@ -94,19 +94,19 @@ public interface MongoRestService {
             Document document, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
-    // GET /databases/<dbName>/collections/<collName>/documents/<docName>
+    // GET /databases/<dbName>/collections/<collName>/documents/<docId>
     public Response findDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
-            @PathParam("docName") String docName, @Context HttpHeaders headers, @Context UriInfo uriInfo,
+            @PathParam("docId") String docId, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
-    // PUT /databases/<dbName>/collections/<collName>/documents/<docName>
+    // PUT /databases/<dbName>/collections/<collName>/documents/<docId>
     public Response updateDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
-            @PathParam("docName") String docName, Document document, @Context HttpHeaders headers,
+            @PathParam("docId") String docId, Document document, @Context HttpHeaders headers,
             @Context UriInfo uriInfo, @Context SecurityContext securityContext);
 
-    // DELETE /databases/<dbName>/collections/<collName>/documents/<docName>
+    // DELETE /databases/<dbName>/collections/<collName>/documents/<docId>
     public Response deleteDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
-            @PathParam("docName") String docName, @Context HttpHeaders headers, @Context UriInfo uriInfo,
+            @PathParam("docId") String docId, @Context HttpHeaders headers, @Context UriInfo uriInfo,
             @Context SecurityContext securityContext);
 
     // GET /databases/<dbName>/collections/<collName>/documents
