@@ -372,7 +372,7 @@ I would recommend scaling out the backing MongoDB first instead of trying to sca
 
 
 ## Contributions
-Fork, spoon, knive the project as you see fit (: Pull requests with bug fixes are very welcome. If you encounter an issue and do not have the time to submit a patch, please log a Github issue against the project.  
+Fork, spoon, knive the project as you see fit (: Pull requests with bug fixes are very welcome. If you encounter an issue and do not have the time to submit a patch, please log a [Github Issue](https://github.com/gsharma/mongo-rest/issues) against the project.  
 
 
 ## License

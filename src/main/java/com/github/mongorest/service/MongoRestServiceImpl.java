@@ -115,8 +115,9 @@ public class MongoRestServiceImpl implements MongoRestService {
     @PUT
     @Path("/databases/{dbName}")
     @Override
-    public Response updateDatabase(com.github.mongorest.to.request.Database database, @PathParam("dbName") String dbName,
-            @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext) {
+    public Response updateDatabase(com.github.mongorest.to.request.Database database,
+            @PathParam("dbName") String dbName, @Context HttpHeaders headers, @Context UriInfo uriInfo,
+            @Context SecurityContext securityContext) {
         if (shutdown) {
             return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
                     .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
@@ -1166,7 +1167,8 @@ public class MongoRestServiceImpl implements MongoRestService {
         authServiceAgainstMongo(db);
         com.github.mongorest.to.response.Database database = new com.github.mongorest.to.response.Database();
         database.setName(dbName);
-        database.setWriteConcern(com.github.mongorest.to.response.WriteConcern.fromMongoWriteConcern(db.getWriteConcern()));
+        database.setWriteConcern(com.github.mongorest.to.response.WriteConcern.fromMongoWriteConcern(db
+                .getWriteConcern()));
         Map statsMap = db.getStats().toMap();
         statsMap.remove("db");
         database.setStats(Utils.CollectionUtils.stringifyMapEntries(statsMap));
