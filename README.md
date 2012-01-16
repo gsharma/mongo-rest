@@ -1,11 +1,12 @@
 # Mongo REST Data Service
 
+
 ## Overview
 The Mongo Data Service is a RESTful data service intended for use in a distributed environment such as a large scale tiered services setup where the data tier can and often needs to be scaled out independently of the other services relying on the tier. A commonly used public cloud configuration is a multi-region multi-availability-zone AWS EC2 environment with the Mongo data tier secured by a VPN like AWS VPC or OpenSwan and RESTful data service access over HTTPS from a desktop or mobile client device on a public or a private network.  
 
 
 ## Quick Start
-1. git clone git@github.com:gsharma/mongo-rest.git  
+1. 'git clone git@github.com:gsharma/mongo-rest.git'  
 2. Fire up 'mongod', then 'mvn install'  
 3. Take a read of the Deployment section.  
 
