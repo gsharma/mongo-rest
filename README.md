@@ -6,8 +6,8 @@ The Mongo Data Service is a RESTful data service intended for use in a distribut
 
 
 ## Quick Start
-1. 'git clone git@github.com:gsharma/mongo-rest.git'  
-2. Fire up 'mongod', then 'mvn install'  
+1. <code>git clone git@github.com:gsharma/mongo-rest.git</code>  
+2. Fire up <code>mongod</code>, then <code>mvn install</code>  
 3. Take a read of the Deployment section.  
 
 
@@ -363,7 +363,7 @@ Example Response:
 
 
 ## Deployment
-The service is deployable as a WAR on Jetty or Tomcat. If you have to, feel free to drop the WAR on a beefier app-server like JBoss/Weblogic/Websphere. The service does expect a MongoDB installation. Download and install your platform [MongoDB Release](http://www.mongodb.org/downloads). To get started, clone the project and 'mvn package'.  
+The service is deployable as a WAR on [Jetty](http://jetty.codehaus.org/jetty) or [Tomcat](http://tomcat.apache.org). If you have to, feel free to drop the WAR on a beefier app-server like JBoss/Weblogic/Websphere. The service does expect a MongoDB installation. Download and install your platform [MongoDB Release](http://www.mongodb.org/downloads).  
 
 
 ## Testing
@@ -371,7 +371,7 @@ The JUnit tests run against the service deployed on Jetty.
 
 
 ## Java Client
-There is a simple Java Client/Proxy library jar that can be created using 'mvn package -Pclient-jar'. Look for the client jar in the target folder.   
+There is a simple Java Client/Proxy library jar that can be created using <code>mvn package -Pclient-jar</code>. Look for the client jar in the target folder.   
 
 
 ## Scaling
