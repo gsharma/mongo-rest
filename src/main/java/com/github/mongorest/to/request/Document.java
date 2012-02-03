@@ -1,5 +1,12 @@
 package com.github.mongorest.to.request;
 
+/**
+ * For the 'json' attribute, use:<br>
+ * String json = org.mongodb.util.JSON.serialize(object)<br>
+ * 
+ * To deserialize:<br>
+ * BasicDBObject deserialized = JSON.parse(json);<br>
+ */
 public class Document {
     private String docId;
     private String json;

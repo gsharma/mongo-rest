@@ -1068,4 +1068,31 @@ public class MongoRestServiceTest {
                 .get(ClientResponse.class);
         assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
     }
+
+    @Test
+    public void testCreateBinary() {
+        com.github.mongorest.to.request.Database db = new com.github.mongorest.to.request.Database();
+        String dbName = "mongo-rest-test";
+        db.setName(dbName);
+        ClientResponse response = clientHandle.resource(baseDbUri).type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, db);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI dbUrl = response.getLocation();
+        com.github.mongorest.to.request.Collection collection = new com.github.mongorest.to.request.Collection();
+        String collName = "mongo-test-collection";
+        collection.setName(collName);
+        response = clientHandle.resource(dbUrl + "/collections").type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, collection);
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+
+        URI collUrl = response.getLocation();
+        response = clientHandle.resource(collUrl).type(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+
+        // response = clientHandle.resource(collUrl +
+        // "/binary").type(MediaType.MULTIPART_FORM_DATA_TYPE).post(ClientResponse.class,
+        // binary);
+        // assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+    }
 }

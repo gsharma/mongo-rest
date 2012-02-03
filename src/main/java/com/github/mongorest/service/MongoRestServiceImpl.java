@@ -1,5 +1,6 @@
 package com.github.mongorest.service;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +49,11 @@ import com.mongodb.Mongo;
 import com.mongodb.MongoException;
 import com.mongodb.MongoException.DuplicateKey;
 import com.mongodb.WriteConcern;
+import com.mongodb.gridfs.GridFS;
+import com.mongodb.gridfs.GridFSInputFile;
 import com.mongodb.util.JSON;
+import com.sun.jersey.multipart.FormDataBodyPart;
+import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Singleton
@@ -67,6 +72,7 @@ public class MongoRestServiceImpl implements MongoRestService {
     private volatile boolean shutdown;
     private Configuration configuration;
     private Mongo mongo;
+    private GridFS gridFs;
     private DBCollection statsByUser;
 
     @POST
@@ -1156,6 +1162,45 @@ public class MongoRestServiceImpl implements MongoRestService {
             }
         } catch (Exception exception) {
             response = lobException(exception, headers, uriInfo);
+        }
+        return response;
+    }
+
+    @POST
+    @Consumes("multipart/form-data")
+    @Path("/databases/{dbName}/collections/{collName}/binary")
+    @Override
+    public Response createBinaryDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
+            FormDataMultiPart document, @Context HttpHeaders headers, @Context UriInfo uriInfo,
+            @Context SecurityContext securityContext) {
+        if (shutdown) {
+            return Response.status(ServerError.SERVICE_UNAVAILABLE.code())
+                    .entity(ServerError.SERVICE_UNAVAILABLE.message()).build();
+        }
+        Response response = null;
+        String user = null;
+        try {
+            Credentials credentials = authenticateAndAuthorize(headers, uriInfo, securityContext);
+            user = credentials.getUserName();
+            FormDataBodyPart file = document.getField("file");
+            String fileName = file.getContentDisposition().getFileName();
+            InputStream fileStream = file.getEntityAs(InputStream.class);
+            GridFSInputFile gridfsFile = gridFs.createFile(fileStream);
+            gridfsFile.setFilename(fileName);
+            gridfsFile.save();
+            ObjectId documentId = (ObjectId) gridfsFile.getId();
+            if (documentId != null && !StringUtils.isNullOrEmpty(documentId.toString())) {
+                URI statusSubResource = uriInfo.getBaseUriBuilder().path(MongoRestServiceImpl.class)
+                        .path("/databases/" + dbName + "/collections/" + collName + "/binary/" + documentId).build();
+                response = Response.created(statusSubResource).build();
+            } else {
+                response = Response.status(ServerError.RUNTIME_ERROR.code())
+                        .entity(ServerError.RUNTIME_ERROR.message()).build();
+            }
+        } catch (Exception exception) {
+            response = lobException(exception, headers, uriInfo);
+        } finally {
+            updateStats(user, "createBinaryDocument");
         }
         return response;
     }

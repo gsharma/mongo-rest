@@ -13,6 +13,7 @@ import com.github.mongorest.to.request.Collection;
 import com.github.mongorest.to.request.Database;
 import com.github.mongorest.to.request.Document;
 import com.github.mongorest.to.request.Index;
+import com.sun.jersey.multipart.FormDataMultiPart;
 
 public interface MongoRestService {
 
@@ -116,6 +117,11 @@ public interface MongoRestService {
     // DELETE /databases/<dbName>/collections/<collName>/documents
     public Response deleteDocuments(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
             @Context HttpHeaders headers, @Context UriInfo uriInfo, @Context SecurityContext securityContext);
+
+    // POST /databases/<dbName>/collections/<collName>/binaries
+    public Response createBinaryDocument(@PathParam("dbName") String dbName, @PathParam("collName") String collName,
+            FormDataMultiPart document, @Context HttpHeaders headers, @Context UriInfo uriInfo,
+            @Context SecurityContext securityContext);
 
     // GET /ping
     public Response ping(@Context HttpHeaders headers, @Context UriInfo uriInfo,
